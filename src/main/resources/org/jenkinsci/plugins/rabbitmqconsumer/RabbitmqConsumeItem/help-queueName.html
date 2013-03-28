@@ -1,0 +1,15 @@
+<div>
+  <p>You can set the name of queue which you want to consume messages.
+  Application messages in queue should have the below properties:</p>
+  
+  <dl>
+    <dt>content_type</dt>
+    <dd><i>application/json</i></dd>
+    <dt>app_id</dt>
+    <dd>Application id that associated plugin's application id.</dd>
+  </dl>
+  
+  <p>The content of application message should be JSON string.</p>
+  
+  <p>Any messages which don't have these properties will be discarded. Also removed from queue.</p>
+</div>
