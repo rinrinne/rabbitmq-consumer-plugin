@@ -20,9 +20,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsumeItem> {
 
-    // See
-    // https://wiki.jenkins-ci.org/display/JENKINS/My+class+is+missing+descriptor
-
     /**
      * App ID for debug.
      */
