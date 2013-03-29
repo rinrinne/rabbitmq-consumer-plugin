@@ -2,7 +2,7 @@ rabbitmq-consumer: RabbitMQ Consumer Plugin for Jenkins
 =======================================================
 
 * Author: rinrinne a.k.a. rin_ne
-* Repository: http://github.com/rinrinne/rabbitmq-consumer
+* Repository: http://github.com/jenkinsci/rabbitmq-consumer
 
 Synopsis
 ------------------------
