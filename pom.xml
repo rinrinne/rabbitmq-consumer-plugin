@@ -69,8 +69,8 @@
   </build>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/rabbitmq-consumer.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rabbitmq-consumer.git</developerConnection>
-    <url>https://github.com/jenkinsci/rabbitmq-consumer</url>
+    <connection>scm:git:git://github.com/jenkinsci/rabbitmq-consumer-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/rabbitmq-consumer-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/rabbitmq-consumer-plugin</url>
   </scm>
 </project>
