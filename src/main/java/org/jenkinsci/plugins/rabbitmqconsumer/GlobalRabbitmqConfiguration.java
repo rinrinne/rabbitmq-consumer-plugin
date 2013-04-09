@@ -121,7 +121,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
     /**
      * Sets flag whether this plugin is enabled or not.
      * 
-     * @param true if this plugin is enabled.
+     * @param enableConsumer true if this plugin is enabled.
      */
     public void setEnableConsumer(boolean enableConsumer) {
         this.enableConsumer = enableConsumer;
