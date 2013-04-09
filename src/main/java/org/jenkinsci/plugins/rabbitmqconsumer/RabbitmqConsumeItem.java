@@ -58,12 +58,30 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
     }
 
     /**
+     * Sets application id.
+     * 
+     * @param appId the application id.
+     */
+    public final void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    /**
      * Gets queue name.
      * 
      * @return the queue name.
      */
     public final String getQueueName() {
         return queueName;
+    }
+
+    /**
+     * Sets queue name.
+     * 
+     * @param queueName the queue name.
+     */
+    public final void setQueueName(String queueName) {
+        this.queueName = queueName;
     }
 
     // CHECKSTYLE:OFF
