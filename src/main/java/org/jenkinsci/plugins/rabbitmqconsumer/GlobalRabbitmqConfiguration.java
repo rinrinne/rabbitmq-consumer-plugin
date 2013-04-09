@@ -101,12 +101,30 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
     }
 
     /**
+     * Sets flag whether debug is enabled or not.
+     * 
+     * @param enableDebug true if debug is enabled.
+     */
+    public void setEnableDebug(boolean enableDebug) {
+        this.enableDebug = enableDebug;
+    }
+
+    /**
      * Gets whether this plugin is enabled or not.
      * 
      * @return true if this plugin is enabled.
      */
     public boolean isEnableConsumer() {
         return enableConsumer;
+    }
+
+    /**
+     * Sets flag whether this plugin is enabled or not.
+     * 
+     * @param true if this plugin is enabled.
+     */
+    public void setEnableConsumer(boolean enableConsumer) {
+        this.enableConsumer = enableConsumer;
     }
 
     /**
