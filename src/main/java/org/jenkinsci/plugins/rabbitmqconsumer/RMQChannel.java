@@ -176,7 +176,7 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      */
     public void addRMQChannelListener(RMQChannelListener rmqChannelListener) {
         synchronized (lock) {
-            if (rmqChannelListeners.contains(rmqChannelListener)) {
+            if (!rmqChannelListeners.contains(rmqChannelListener)) {
                 rmqChannelListeners.add(rmqChannelListener);
             }
         }
