@@ -343,7 +343,6 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
-        LOGGER.info("#onShutdownCompleted");
         connection = null;
         notifyOnCloseCompleted();
     }

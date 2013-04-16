@@ -27,14 +27,13 @@ public class ItemListenerImpl extends ItemListener {
 
     @Override
     public final void onLoaded() {
-        LOGGER.info("#onLoaded()");
+        LOGGER.info("Start bootup process.");
         rmqManager.update();
         super.onLoaded();
     }
 
     @Override
     public final void onBeforeShutdown() {
-        LOGGER.info("#onBeforeShutdown()");
         rmqManager.shutdown();
         super.onBeforeShutdown();
     }

@@ -224,7 +224,6 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
      */
     @JavaScriptMethod
     public boolean isOpen() {
-        LOGGER.info("#isOpen");
         return RMQManager.getInstance().isOpen();
     }
 
@@ -238,7 +237,6 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
      */
     @JavaScriptMethod
     public boolean isConsume(String queueName) {
-        LOGGER.info("#isConsume: " + queueName);
         RMQManager manager = RMQManager.getInstance();
         if (manager.isOpen()) {
             return manager.getChannelStatus(queueName);

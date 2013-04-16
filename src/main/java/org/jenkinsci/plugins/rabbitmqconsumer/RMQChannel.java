@@ -238,7 +238,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
-        LOGGER.info("#shutdownCompleted");
         channel = null;
         consumeStarted = false;
         ApplicationMessageNotifyUtil.fireOnUnbind(appIds, queueName);

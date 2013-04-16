@@ -67,7 +67,6 @@ public class ReconnectTimer extends AperiodicWork {
 
     @Override
     protected void doAperiodicRun() {
-        logger.info("watchdog");
         if (!stopRequested) {
             RMQManager manager = RMQManager.getInstance();
             GlobalRabbitmqConfiguration config = GlobalRabbitmqConfiguration.get();

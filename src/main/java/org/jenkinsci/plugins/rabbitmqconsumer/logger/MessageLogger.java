@@ -41,7 +41,7 @@ public class MessageLogger implements ExtensionPoint, ApplicationMessageListener
      *            the queue name that bind to.
      */
     public void onBind(String queueName) {
-        LOGGER.info("#onBind");
+        LOGGER.info("Bind to " + queueName);
     }
 
     /**
@@ -50,7 +50,7 @@ public class MessageLogger implements ExtensionPoint, ApplicationMessageListener
      *            the queue name that unbind from.
      */
     public void onUnbind(String queueName) {
-        LOGGER.info("#onUnbind");
+        LOGGER.info("Unbind from " + queueName);
     }
 
     /**
@@ -61,6 +61,6 @@ public class MessageLogger implements ExtensionPoint, ApplicationMessageListener
      *            the content of message.
      */
     public void onReceive(String queueName, JSONObject json) {
-        LOGGER.info("#onReceive: " + json.toString());
+        LOGGER.info("Receive: " + json.toString());
     }
 }

@@ -20,7 +20,7 @@ public class SaveableListenerImpl extends SaveableListener {
     @Override
     public final void onChange(Saveable o, XmlFile file) {
         if (o instanceof GlobalRabbitmqConfiguration) {
-            LOGGER.info("#onChange() for GlobalRabbitmqConfiguration");
+            LOGGER.info("RabbitMQ configuration is updated, so update connection...");
             RMQManager.getInstance().update();
         }
         super.onChange(o, file);

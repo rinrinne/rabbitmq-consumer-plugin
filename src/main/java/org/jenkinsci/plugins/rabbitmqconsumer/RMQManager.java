@@ -43,7 +43,7 @@ public final class RMQManager implements RMQConnectionListener {
      * Updates RabbitMQ connection.
      */
     public void update() {
-        LOGGER.info("#update");
+        LOGGER.info("Start to update connections...");
         String uri = GlobalRabbitmqConfiguration.get().getServiceUri();
         boolean enableConsumer = GlobalRabbitmqConfiguration.get().isEnableConsumer();
 
