@@ -257,7 +257,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the channel.
      */
     public void onOpen(RMQChannel rmqChannel) {
-        LOGGER.info("#onOpen");
+        LOGGER.info("Open RabbitMQ channel for " + rmqChannel.getQueueName() + ".");
         rmqChannel.consume();
     }
 
@@ -267,7 +267,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the channel.
      */
     public void onCloseCompleted(RMQChannel rmqChannel) {
-        LOGGER.info("#onCloseCompleted");
+        LOGGER.info("Closed RabbitMQ channel for " + rmqChannel.getQueueName() + ".");
         rmqChannel.removeRMQChannelListener(this);
         synchronized (lockForChannels) {
             rmqChannels.remove(rmqChannel);

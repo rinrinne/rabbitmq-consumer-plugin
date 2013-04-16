@@ -48,20 +48,29 @@ public final class RMQManager implements RMQConnectionListener {
         boolean enableConsumer = GlobalRabbitmqConfiguration.get().isEnableConsumer();
 
         try {
-            if (rmqConnection != null) {
-                if (!enableConsumer || (uri == null || !uri.equals(rmqConnection.getServiceUri()))) {
+            if (!enableConsumer || uri == null) {
+                if (rmqConnection != null) {
                     shutdownWithWait();
+                    rmqConnection = null;
+                }
+            }
+            if (rmqConnection != null && !uri.equals(rmqConnection.getServiceUri())) {
+                if (rmqConnection != null) {
+                    shutdownWithWait();
+                    rmqConnection = null;
                 }
             }
 
             if (enableConsumer) {
-                rmqConnection = new RMQConnection(uri);
-                rmqConnection.addRMQConnectionListener(this);
-                try {
-                    rmqConnection.open();
-                } catch (IOException e) {
-                    LOGGER.warning("Cannot open connection.");
-                    return;
+                if (rmqConnection == null) {
+                    rmqConnection = new RMQConnection(uri);
+                    rmqConnection.addRMQConnectionListener(this);
+                    try {
+                        rmqConnection.open();
+                    } catch (IOException e) {
+                        LOGGER.warning("Cannot open connection.");
+                        return;
+                    }
                 }
                 rmqConnection.updateChannels(GlobalRabbitmqConfiguration.get().getConsumeItems());
             }
@@ -129,7 +138,7 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onOpen(RMQConnection rmqConnection) {
-        LOGGER.info("#onOpen");
+        LOGGER.info("Open RabbitMQ connection.");
         statusOpen = true;
     }
 
@@ -139,8 +148,9 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onCloseCompleted(RMQConnection rmqConnection) {
-        LOGGER.info("#onCloseCompleted");
+        LOGGER.info("Closed RabbitMQ connection.");
         statusOpen = false;
+        rmqConnection.removeRMQConnectionListener(this);
         rmqConnection = null;
         if (closeLatch != null) {
             closeLatch.countDown();
