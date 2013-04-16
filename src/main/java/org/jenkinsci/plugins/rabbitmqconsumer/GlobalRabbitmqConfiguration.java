@@ -82,6 +82,9 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws hudson.model.Descriptor.FormException {
+        if (consumeItems != null) {
+            consumeItems.clear();
+        }
         req.bindJSON(this, json);
 
         if (urlValidator.isValid(serviceUri)) {
