@@ -3,9 +3,10 @@ package org.jenkinsci.plugins.rabbitmqconsumer;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQConnectionEvent;
@@ -34,12 +35,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     private final String serviceUri;
     private final ConnectionFactory factory;
     private Connection connection = null;
-    private final List<RMQChannel> rmqChannels = new ArrayList<RMQChannel>();
-    private final List<RMQConnectionListener> rmqConnectionListeners = new ArrayList<RMQConnectionListener>();
+    private final Set<RMQChannel> rmqChannels = new CopyOnWriteArraySet<RMQChannel>();
+    private final Set<RMQConnectionListener> rmqConnectionListeners = new CopyOnWriteArraySet<RMQConnectionListener>();
     private volatile boolean closeRequested = true;
-
-    private Object lockForListener = new Object();
-    private Object lockForChannels = new Object();
 
     /**
      * Creates instance with specified parameter.
@@ -68,7 +66,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      * 
      * @return the list of RMQChannels.
      */
-    public List<RMQChannel> getRMQChannels() {
+    public Set<RMQChannel> getRMQChannels() {
         return rmqChannels;
     }
 
@@ -80,11 +78,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      * @return true if channel for specified queue is already established.
      */
     public boolean getChannelStatus(String queueName) {
-        synchronized (lockForChannels) {
-            for (RMQChannel ch : rmqChannels) {
-                if (ch.getQueueName().equals(queueName)) {
-                    return ch.isConsumeStarted();
-                }
+        for (RMQChannel ch : rmqChannels) {
+            if (ch.getQueueName().equals(queueName)) {
+                return ch.isConsumeStarted();
             }
         }
         return false;
@@ -187,10 +183,8 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
             HashSet<String> existingQueueNames = new HashSet<String>();
 
             // get existing channel name set
-            synchronized (lockForChannels) {
-                for (RMQChannel h : rmqChannels) {
-                    existingQueueNames.add(h.getQueueName());
-                }
+            for (RMQChannel h : rmqChannels) {
+                existingQueueNames.add(h.getQueueName());
             }
 
             // create non-existing channels
@@ -208,9 +202,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                             RMQChannel ch = new RMQChannel(queueName, appIds);
                             ch.addRMQChannelListener(this);
                             ch.open(connection);
-                            synchronized (lockForChannels) {
-                                rmqChannels.add(ch);
-                            }
+                            rmqChannels.add(ch);
                         } catch (IOException e) {
                             LOGGER.warning(e.toString());
                         }
@@ -228,11 +220,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     private void closeUnusedChannels(HashSet<String> usedQueueNames) {
         if (!rmqChannels.isEmpty()) {
-            synchronized (lockForChannels) {
-                for (RMQChannel ch : rmqChannels) {
-                    if (!usedQueueNames.contains(ch.getQueueName())) {
-                        ch.close();
-                    }
+            for (RMQChannel ch : rmqChannels) {
+                if (!usedQueueNames.contains(ch.getQueueName())) {
+                    ch.close();
                 }
             }
         }
@@ -243,10 +233,8 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     private void closeAllChannels() {
         if (!rmqChannels.isEmpty()) {
-            synchronized (lockForChannels) {
-                for (RMQChannel h : rmqChannels) {
-                    h.close();
-                }
+            for (RMQChannel h : rmqChannels) {
+                h.close();
             }
         }
     }
@@ -269,9 +257,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     public void onCloseCompleted(RMQChannel rmqChannel) {
         LOGGER.info("Closed RabbitMQ channel for " + rmqChannel.getQueueName() + ".");
         rmqChannel.removeRMQChannelListener(this);
-        synchronized (lockForChannels) {
-            rmqChannels.remove(rmqChannel);
-        }
+        rmqChannels.remove(rmqChannel);
     }
 
     /**
@@ -280,11 +266,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the connection listener.
      */
     public void addRMQConnectionListener(RMQConnectionListener rmqConnectionListener) {
-        synchronized (lockForListener) {
-            if (!rmqConnectionListeners.contains(rmqConnectionListener)) {
-                rmqConnectionListeners.add(rmqConnectionListener);
-            }
-        }
+        rmqConnectionListeners.add(rmqConnectionListener);
     }
 
     /**
@@ -293,9 +275,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the connection listener.
      */
     public void removeRMQConnectionListener(RMQConnectionListener rmqConnectionListener) {
-        synchronized (lockForListener) {
-            rmqConnectionListeners.remove(rmqConnectionListener);
-        }
+        rmqConnectionListeners.remove(rmqConnectionListener);
     }
 
     /**
@@ -312,13 +292,11 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the event for connection.
      */
     public void notifyRMQConnectionListeners(RMQConnectionEvent event) {
-        synchronized (lockForListener) {
-            for (RMQConnectionListener l : rmqConnectionListeners) {
-                if (event == RMQConnectionEvent.CLOSE_COMPLETED) {
-                    l.onCloseCompleted(this);
-                } else if (event == RMQConnectionEvent.OPEN) {
-                    l.onOpen(this);
-                }
+        for (RMQConnectionListener l : rmqConnectionListeners) {
+            if (event == RMQConnectionEvent.CLOSE_COMPLETED) {
+                l.onCloseCompleted(this);
+            } else if (event == RMQConnectionEvent.OPEN) {
+                l.onOpen(this);
             }
         }
     }

@@ -1,9 +1,9 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,7 +34,7 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
     private Channel channel;
     private final HashSet<String> appIds;
     private final String queueName;
-    private final List<RMQChannelListener> rmqChannelListeners = new ArrayList<RMQChannelListener>();
+    private final Set<RMQChannelListener> rmqChannelListeners = new CopyOnWriteArraySet<RMQChannelListener>();
     private volatile boolean consumeStarted = false;
 
     private final boolean debug = GlobalRabbitmqConfiguration.get().isEnableDebug();
@@ -44,8 +44,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
             add(RabbitmqConsumeItem.DEBUG_APPID);
         }
     };
-
-    private Object lock = new Object();
 
     /**
      * Creates instance with specified parameters.
@@ -185,11 +183,7 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      *            the channel listener.
      */
     public void addRMQChannelListener(RMQChannelListener rmqChannelListener) {
-        synchronized (lock) {
-            if (!rmqChannelListeners.contains(rmqChannelListener)) {
-                rmqChannelListeners.add(rmqChannelListener);
-            }
-        }
+        rmqChannelListeners.add(rmqChannelListener);
     }
 
     /**
@@ -198,9 +192,7 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      *            the channel listener.
      */
     public void removeRMQChannelListener(RMQChannelListener rmqChannelListener) {
-        synchronized (lock) {
-            rmqChannelListeners.remove(rmqChannelListener);
-        }
+        rmqChannelListeners.remove(rmqChannelListener);
     }
 
     /**
@@ -217,13 +209,11 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      *            the event for channel.
      */
     public void notifyRMQChannelListeners(RMQChannelEvent event) {
-        synchronized (lock) {
-            for (RMQChannelListener l : rmqChannelListeners) {
-                if (event == RMQChannelEvent.CLOSE_COMPLETED) {
-                    l.onCloseCompleted(this);
-                } else if (event == RMQChannelEvent.OPEN) {
-                    l.onOpen(this);
-                }
+        for (RMQChannelListener l : rmqChannelListeners) {
+            if (event == RMQChannelEvent.CLOSE_COMPLETED) {
+                l.onCloseCompleted(this);
+            } else if (event == RMQChannelEvent.OPEN) {
+                l.onOpen(this);
             }
         }
     }
