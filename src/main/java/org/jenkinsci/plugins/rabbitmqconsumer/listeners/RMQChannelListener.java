@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.listeners;
 
-import org.jenkinsci.plugins.rabbitmqconsumer.RMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 
 /**
  * Listener interface for {@link RMQChannel}.
@@ -14,7 +14,7 @@ public interface RMQChannelListener {
      * @param rmqChannel
      *            the closed channel.
      */
-    void onCloseCompleted(RMQChannel rmqChannel);
+    void onCloseCompleted(AbstractRMQChannel rmqChannel);
 
     /**
      * Calls when channel is opend.
@@ -22,5 +22,5 @@ public interface RMQChannelListener {
      * @param rmqChannel
      *            the channel.
      */
-    void onOpen(RMQChannel rmqChannel);
+    void onOpen(AbstractRMQChannel rmqChannel);
 }

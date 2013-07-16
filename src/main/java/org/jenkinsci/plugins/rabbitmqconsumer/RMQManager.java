@@ -1,10 +1,12 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 
 /**
@@ -128,8 +130,21 @@ public final class RMQManager implements RMQConnectionListener {
         if (rmqConnection == null) {
             return false;
         } else {
-            return rmqConnection.getChannelStatus(queueName);
+            return rmqConnection.getConsumeChannelStatus(queueName);
         }
+    }
+
+    /**
+     * Gets instance of {@link PublishRMQChannel}.
+     *
+     * @return instance.
+     */
+    public PublishRMQChannel getPublishChannel() {
+        Set<PublishRMQChannel> channels = rmqConnection.getPublishRMQChannels();
+        if (!channels.isEmpty()) {
+            return (PublishRMQChannel)(channels.toArray()[0]);
+        }
+        return null;
     }
 
     /**

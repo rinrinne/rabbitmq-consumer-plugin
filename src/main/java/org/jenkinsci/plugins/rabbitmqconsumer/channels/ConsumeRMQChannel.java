@@ -1,38 +1,33 @@
-package org.jenkinsci.plugins.rabbitmqconsumer;
+package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jenkinsci.plugins.rabbitmqconsumer.GlobalRabbitmqConfiguration;
+import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQChannelEvent;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
-import org.jenkinsci.plugins.rabbitmqconsumer.notifiers.RMQChannelNotifier;
 import org.jenkinsci.plugins.rabbitmqconsumer.utils.ApplicationMessageNotifyUtil;
 
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.AMQP.BasicProperties;
 
 /**
- * Handle class for RabbitMQ channel.
+ * Handle class for RabbitMQ consume channel.
  * 
  * @author rinrinne a.k.a. rin_ne
  */
-public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
+public class ConsumeRMQChannel extends AbstractRMQChannel {
 
-    private static final Logger LOGGER = Logger.getLogger(RMQChannel.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ConsumeRMQChannel.class.getName());
 
-    private Channel channel;
-    private final HashSet<String> appIds;
+    protected final HashSet<String> appIds;
     private final String queueName;
-    private final Set<RMQChannelListener> rmqChannelListeners = new CopyOnWriteArraySet<RMQChannelListener>();
     private volatile boolean consumeStarted = false;
 
     private final boolean debug = GlobalRabbitmqConfiguration.get().isEnableDebug();
@@ -51,32 +46,9 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      * @param appIds
      *            the hashset of application id.
      */
-    public RMQChannel(String queueName, HashSet<String> appIds) {
-        this.queueName = queueName;
+    public ConsumeRMQChannel(String queueName, HashSet<String> appIds) {
         this.appIds = appIds;
-    }
-
-    /**
-     * Open connection.
-     * 
-     * @param connection
-     *            the instance of Connection, not RMQConnection.
-     * @throws IOException
-     *             exception if channel cannot be created.
-     */
-    public void open(final Connection connection) throws IOException {
-        channel = connection.createChannel();
-        channel.addShutdownListener(this);
-        notifyOnOpen();
-    }
-
-    /**
-     * Gets instance of Channel, not RMQChannel.
-     * 
-     * @return the instance of Channel.
-     */
-    public Channel getChannel() {
-        return channel;
+        this.queueName = queueName;
     }
 
     /**
@@ -95,17 +67,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
      */
     public String getQueueName() {
         return queueName;
-    }
-
-    /**
-     * Close channel.
-     */
-    public void close() {
-        try {
-            channel.close();
-        } catch (IOException e) {
-            LOGGER.warning("Could not close channel. but go forward.");
-        }
     }
 
     /**
@@ -157,10 +118,14 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
                 long deliveryTag = envelope.getDeliveryTag();
                 String contentType = properties.getContentType();
 
-                if (!properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
-                    if (debug) {
+                if (debug) {
+                    if (appIds.contains(RabbitmqConsumeItem.DEBUG_APPID)) {
                         ApplicationMessageNotifyUtil.fireOnReceive(debugId, queueName, contentType, body);
                     }
+                }
+
+                if (properties.getAppId() != null &&
+                        !properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
                     if (appIds.contains(properties.getAppId())) {
                         ApplicationMessageNotifyUtil.fireOnReceive(appIds, queueName, contentType, body);
                     }
@@ -174,32 +139,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
                 LOGGER.log(Level.WARNING, "caught exception in delivery handler", e);
             }
         }
-    }
-
-    /**
-     * @inheritDoc
-     * @param rmqChannelListener
-     *            the channel listener.
-     */
-    public void addRMQChannelListener(RMQChannelListener rmqChannelListener) {
-        rmqChannelListeners.add(rmqChannelListener);
-    }
-
-    /**
-     * @inheritDoc
-     * @param rmqChannelListener
-     *            the channel listener.
-     */
-    public void removeRMQChannelListener(RMQChannelListener rmqChannelListener) {
-        rmqChannelListeners.remove(rmqChannelListener);
-    }
-
-    /**
-     * @inheritDoc
-     * @return true if channel is already opened.
-     */
-    public boolean isOpenRMQChannel() {
-        return channel.isOpen();
     }
 
     /**
@@ -218,20 +157,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
     }
 
     /**
-     * Notify OnCloseCompleted event.
-     */
-    public void notifyOnCloseCompleted() {
-        notifyRMQChannelListeners(RMQChannelEvent.CLOSE_COMPLETED);
-    }
-
-    /**
-     * Notify OnOpen event.
-     */
-    public void notifyOnOpen() {
-        notifyRMQChannelListeners(RMQChannelEvent.OPEN);
-    }
-
-    /**
      * @inheritDoc
      * @param shutdownSignalException
      *            the exception.
@@ -240,6 +165,6 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
         channel = null;
         consumeStarted = false;
         ApplicationMessageNotifyUtil.fireOnUnbind(appIds, queueName);
-        notifyOnCloseCompleted();
+        super.shutdownCompleted(shutdownSignalException);
     }
 }
