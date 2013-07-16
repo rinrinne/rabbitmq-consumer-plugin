@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.listeners;
 
-import net.sf.json.JSONObject;
-
 /**
  * Listener interface for Application message. Note that this interface should
  * be implemented to extension (c.f. descriptor).
@@ -47,5 +45,5 @@ public interface ApplicationMessageListener {
      * @param json
      *            the content of message.
      */
-    void onReceive(String queueName, JSONObject json);
+    void onReceive(String queueName, String contentType, byte[] body);
 }

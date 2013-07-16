@@ -27,8 +27,6 @@ import com.rabbitmq.client.AMQP.BasicProperties;
  */
 public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
 
-    private static final String CONTENT_TYPE_JSON = "application/json";
-
     private static final Logger LOGGER = Logger.getLogger(RMQChannel.class.getName());
 
     private Channel channel;
@@ -157,13 +155,14 @@ public class RMQChannel implements RMQChannelNotifier, ShutdownListener {
             try {
 
                 long deliveryTag = envelope.getDeliveryTag();
+                String contentType = properties.getContentType();
 
                 if (!properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
                     if (debug) {
-                        ApplicationMessageNotifyUtil.fireOnReceive(debugId, queueName, new String(body, "UTF-8"));
+                        ApplicationMessageNotifyUtil.fireOnReceive(debugId, queueName, contentType, body);
                     }
-                    if (CONTENT_TYPE_JSON.equals(properties.getContentType()) && appIds.contains(properties.getAppId())) {
-                        ApplicationMessageNotifyUtil.fireOnReceive(appIds, queueName, new String(body, "UTF-8"));
+                    if (appIds.contains(properties.getAppId())) {
+                        ApplicationMessageNotifyUtil.fireOnReceive(appIds, queueName, contentType, body);
                     }
                 }
 

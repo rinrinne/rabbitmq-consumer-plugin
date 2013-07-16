@@ -3,8 +3,8 @@ package org.jenkinsci.plugins.rabbitmqconsumer.logger;
 import hudson.Extension;
 import hudson.ExtensionPoint;
 
+import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
-import net.sf.json.JSONObject;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener;
@@ -60,7 +60,13 @@ public class MessageLogger implements ExtensionPoint, ApplicationMessageListener
      * @param json
      *            the content of message.
      */
-    public void onReceive(String queueName, JSONObject json) {
-        LOGGER.info("Receive: " + json.toString());
+    public void onReceive(String queueName, String contentType, byte[] body) {
+        String msg;
+        try {
+            msg = new String(body, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            msg = "<Unsupported Encoding>";
+        }
+        LOGGER.info("Receive: (" + contentType + ") " + msg);
     }
 }

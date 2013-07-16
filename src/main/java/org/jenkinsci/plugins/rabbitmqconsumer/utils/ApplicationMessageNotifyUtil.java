@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener;
 
@@ -36,16 +33,11 @@ public final class ApplicationMessageNotifyUtil {
      * @param json
      *            the json object.
      */
-    public static void fireOnReceive(HashSet<String> appIds, String queueName, Object json) {
+    public static void fireOnReceive(HashSet<String> appIds, String queueName, String contentType, byte[] body) {
         LOGGER.entering("DefaultApplicationMessageListener", "fireOnReceive");
         for (ApplicationMessageListener l : getAllListeners()) {
             if (appIds.contains(l.getAppId())) {
-                try {
-                    JSONObject jsonObj = (JSONObject) JSONSerializer.toJSON(json);
-                    l.onReceive(queueName, jsonObj);
-                } catch (JSONException e) {
-                    LOGGER.warning(e.toString());
-                }
+                l.onReceive(queueName, contentType, body);
             }
         }
     }
