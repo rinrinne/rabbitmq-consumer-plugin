@@ -39,10 +39,35 @@ Interface:
 
 > org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener
 
+Publish messages from your plugin
+------------------------
+
+This plugin provides convenient interfaces to publish messages to RabbitMQ.
+
+If you want to use them from your plugin, please see the implementation of [RabbitMQ Build Trigger Plugin][rabbitmq-build-trigger].
+
+Implementaion class:
+
+> org.jenkinsci.plugins.rabbitmqbuildtrigger.RemoteBuildPublisher
+
+Interfaces:
+
+> org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannelFactory
+> org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannel
+> org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishResult
+
 Notice
 ------------------------
 
 This plugin does not generates any queues in RabbitMQ. So you should prepare them by yourself.
+
+Material
+------------------------
+
+* [RabbitMQ Build Trigger Plugin][rabbitmq-build-trigger]
+
+[rabbitmq-build-trigger]: http://wiki.jenkins-ci.org/display/JENKINS/RabbitMQ+Build+Trigger+Plugin
+[source-rabbitmq-build-trigger]: https://github.com/jenkinsci/rabbitmq-build-trigger-plugin
 
 License
 ------------------------
