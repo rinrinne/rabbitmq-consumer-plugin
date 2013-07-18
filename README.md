@@ -55,6 +55,8 @@ Interfaces:
 > org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannelFactory
 > org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishChannel
 > org.jenkinsci.plugins.rabbitmqconsumer.publishers.PublishResult
+> org.jenkinsci.plugins.rabbitmqconsumer.publishers.ExchangeType
+> org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener
 
 Notice
 ------------------------
