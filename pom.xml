@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>rabbitmq-consumer</artifactId>
-  <version>1.8-SNAPSHOT</version>
+  <version>1.8</version>
   <packaging>hpi</packaging>
   <name>RabbitMQ Consumer Plugin</name>
   <description>A plugin that consume messages from RabbitMQ then deliver listeners.</description>
