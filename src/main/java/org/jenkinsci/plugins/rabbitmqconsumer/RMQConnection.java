@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
+import hudson.util.Secret;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
@@ -9,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
@@ -36,6 +39,8 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     private static final Logger LOGGER = Logger.getLogger(RMQConnection.class.getName());
 
     private final String serviceUri;
+    private final String userName;
+    private final Secret userPassword;
     private final ConnectionFactory factory;
     private Connection connection = null;
     private final Set<AbstractRMQChannel> rmqChannels = new CopyOnWriteArraySet<AbstractRMQChannel>();
@@ -48,8 +53,10 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      * @param serviceUri
      *            the URI for RabbitMQ service.
      */
-    public RMQConnection(String serviceUri) {
+    public RMQConnection(String serviceUri, String userName, Secret userPassword) {
         this.serviceUri = serviceUri;
+        this.userName = userName;
+        this.userPassword = userPassword;
         this.factory = new ConnectionFactory();
         this.factory.setConnectionTimeout(TIMEOUT_CONNECTION_MILLIS);
         this.factory.setRequestedHeartbeat(HEARTBEAT_CONNECTION_SECS);
@@ -62,6 +69,24 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     public String getServiceUri() {
         return serviceUri;
+    }
+
+    /**
+     * Gets URI for RabbitMQ service.
+     * 
+     * @return the URI.
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Gets URI for RabbitMQ service.
+     * 
+     * @return the URI.
+     */
+    public Secret getUserPassword() {
+        return userPassword;
     }
 
     /**
@@ -129,6 +154,12 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
         if (closeRequested) {
             try {
                 factory.setUri(serviceUri);
+                if (StringUtils.isNotEmpty(userName)) {
+                    factory.setUsername(userName);
+                }
+                if (StringUtils.isNotEmpty(Secret.toString(userPassword))) {
+                    factory.setPassword(Secret.toString(userPassword));
+                }
                 connection = factory.newConnection();
                 connection.addShutdownListener(this);
                 closeRequested = false;

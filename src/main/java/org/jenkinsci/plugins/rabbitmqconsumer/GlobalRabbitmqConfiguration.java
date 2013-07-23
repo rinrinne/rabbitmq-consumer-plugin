@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.rabbitmqconsumer;
 
 import hudson.Extension;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -21,6 +22,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.PossibleAuthenticationFailureException;
 
 import jenkins.model.GlobalConfiguration;
 
@@ -44,6 +46,8 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     private boolean enableConsumer;
     private String serviceUri;
+    private String userName;
+    private Secret userPassword;
     private List<RabbitmqConsumeItem> consumeItems;
     private boolean enableDebug;
 
@@ -54,6 +58,10 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
      *            if this feature is enabled.
      * @param serviceUri
      *            the service URI.
+     * @param userName
+     *            the username.
+     * @param userPassword
+     *            the password.
      * @param consumeItems
      *            the list of consumer items.
      * @param enableDebug
@@ -61,9 +69,12 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
      */
     @DataBoundConstructor
     public GlobalRabbitmqConfiguration(boolean enableConsumer, String serviceUri,
+            String userName, Secret userPassword,
             List<RabbitmqConsumeItem> consumeItems, boolean enableDebug) {
         this.enableConsumer = enableConsumer;
         this.serviceUri = StringUtils.strip(StringUtils.stripToNull(serviceUri), "/");
+        this.userName = userName;
+        this.userPassword = userPassword;
         this.consumeItems = consumeItems;
         this.enableDebug = enableDebug;
     }
@@ -150,6 +161,54 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
     }
 
     /**
+     * Gets username.
+     * 
+     * @return the username.
+     */
+    public String getUserName() {
+        return userName;
+    }
+
+    /**
+     * Sets username.
+     * 
+     * @param userName
+     *            the username.
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    /**
+     * Gets password.
+     * 
+     * @return the password.
+     */
+    public Secret getUserPassword() {
+        return userPassword;
+    }
+
+    /**
+     * Sets password.
+     * 
+     * @param userPassword
+     *            the password.
+     */
+    public void setUserPassword(Secret userPassword) {
+        this.userPassword = userPassword;
+    }
+
+    /**
+     * Sets password.
+     * 
+     * @param userPassword
+     *            the password.
+     */
+    public void setUserPassword(String userPassword) {
+        this.userPassword = Secret.fromString(userPassword);
+    }
+
+    /**
      * Checks given URI is valid.
      * 
      * @param value
@@ -174,27 +233,41 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
      * 
      * @param serviceUri
      *            the URI.
+     * @param userName
+     *            the username.
+     * @param userPassword
+     *            the password.
      * @return FormValidation object that indicates ok or error.
      * @throws ServletException
      *             exception for servlet.
      */
-    public FormValidation doTestConnection(@QueryParameter("serviceUri") String serviceUri) throws ServletException {
+    public FormValidation doTestConnection(@QueryParameter("serviceUri") String serviceUri,
+            @QueryParameter("userName") String userName,
+            @QueryParameter("userPassword") Secret userPassword) throws ServletException {
         String uri = StringUtils.strip(StringUtils.stripToNull(serviceUri), "/");
         if (uri != null && urlValidator.isValid(uri)) {
             try {
                 ConnectionFactory factory = new ConnectionFactory();
                 factory.setUri(uri);
+                if (StringUtils.isNotEmpty(userName)) {
+                    factory.setUsername(userName);
+                }
+                if (StringUtils.isNotEmpty(Secret.toString(userPassword))) {
+                    factory.setPassword(Secret.toString(userPassword));
+                }
                 factory.newConnection();
                 return FormValidation.ok(Messages.Success());
             } catch (URISyntaxException e) {
-                return FormValidation.error(Messages.Error() + ": " + e);
+                return FormValidation.error(Messages.InvalidURI());
             } catch (GeneralSecurityException e) {
                 return FormValidation.error(Messages.Error() + ": " + e);
+            } catch (PossibleAuthenticationFailureException e) {
+                return FormValidation.error(Messages.AuthFailure());
             } catch (IOException e) {
                 return FormValidation.error(Messages.Error() + ": " + e);
             }
         }
-        return FormValidation.error("Invalid URI");
+        return FormValidation.error(Messages.InvalidURI());
     }
 
     /**

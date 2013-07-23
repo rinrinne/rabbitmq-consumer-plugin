@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
+import hudson.util.Secret;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -46,8 +48,12 @@ public final class RMQManager implements RMQConnectionListener {
      */
     public void update() {
         LOGGER.info("Start to update connections...");
-        String uri = GlobalRabbitmqConfiguration.get().getServiceUri();
-        boolean enableConsumer = GlobalRabbitmqConfiguration.get().isEnableConsumer();
+        GlobalRabbitmqConfiguration conf = GlobalRabbitmqConfiguration.get();
+        String uri = conf.getServiceUri();
+        String user = conf.getUserName();
+        Secret pass = conf.getUserPassword();
+
+        boolean enableConsumer = conf.isEnableConsumer();
 
         try {
             if (!enableConsumer || uri == null) {
@@ -56,7 +62,10 @@ public final class RMQManager implements RMQConnectionListener {
                     rmqConnection = null;
                 }
             }
-            if (rmqConnection != null && !uri.equals(rmqConnection.getServiceUri())) {
+            if (rmqConnection != null &&
+                    !uri.equals(rmqConnection.getServiceUri()) &&
+                    !user.equals(rmqConnection.getUserName()) &&
+                    !pass.equals(rmqConnection.getUserPassword())) {
                 if (rmqConnection != null) {
                     shutdownWithWait();
                     rmqConnection = null;
@@ -65,7 +74,7 @@ public final class RMQManager implements RMQConnectionListener {
 
             if (enableConsumer) {
                 if (rmqConnection == null) {
-                    rmqConnection = new RMQConnection(uri);
+                    rmqConnection = new RMQConnection(uri, user, pass);
                     rmqConnection.addRMQConnectionListener(this);
                     try {
                         rmqConnection.open();
