@@ -47,8 +47,10 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
      */
     public void open(final Connection connection) throws IOException {
         channel = connection.createChannel();
-        channel.addShutdownListener(this);
-        notifyOnOpen();
+        if (channel != null) {
+            channel.addShutdownListener(this);
+            notifyOnOpen();
+        }
     }
 
     /**
