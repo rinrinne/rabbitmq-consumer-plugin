@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +20,7 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 
 /**
  * Handle class for RabbitMQ consume channel.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public class ConsumeRMQChannel extends AbstractRMQChannel {
@@ -40,7 +41,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * Creates instance with specified parameters.
-     * 
+     *
      * @param queueName
      *            the queue name.
      * @param appIds
@@ -53,7 +54,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * Get hashset of app ids.
-     * 
+     *
      * @return the hashset of app ids.
      */
     public HashSet<String> getAppIds() {
@@ -62,7 +63,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * Gets queue name.
-     * 
+     *
      * @return the queue name.
      */
     public String getQueueName() {
@@ -84,7 +85,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * Gets whether consumer is already started or not.
-     * 
+     *
      * @return true if consumer is already started.
      */
     public boolean isConsumeStarted() {
@@ -93,15 +94,15 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * Handle class that consume message.
-     * 
+     *
      * @author rinrinne a.k.a. rin_ne
-     * 
+     *
      */
     public class MessageConsumer extends DefaultConsumer {
 
         /**
          * Creates instance with specified parameter.
-         * 
+         *
          * @param channel
          *            the instance of Channel, not RMQChannel.
          */
@@ -147,12 +148,17 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
      *            the event for channel.
      */
     public void notifyRMQChannelListeners(RMQChannelEvent event) {
+        Set<RMQChannelListener> listeners = new HashSet<RMQChannelListener>();
         for (RMQChannelListener l : rmqChannelListeners) {
             if (event == RMQChannelEvent.CLOSE_COMPLETED) {
                 l.onCloseCompleted(this);
+                listeners.add(l);
             } else if (event == RMQChannelEvent.OPEN) {
                 l.onOpen(this);
             }
+        }
+        if (listeners.size() > 0) {
+            rmqChannelListeners.remove(listeners);
         }
     }
 

@@ -28,7 +28,7 @@ import com.rabbitmq.client.ShutdownSignalException;
 
 /**
  * Handle class for RabbitMQ connection.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQConnectionNotifier {
@@ -49,7 +49,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Creates instance with specified parameter.
-     * 
+     *
      * @param serviceUri
      *            the URI for RabbitMQ service.
      */
@@ -64,7 +64,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets URI for RabbitMQ service.
-     * 
+     *
      * @return the URI.
      */
     public String getServiceUri() {
@@ -73,7 +73,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets URI for RabbitMQ service.
-     * 
+     *
      * @return the URI.
      */
     public String getUserName() {
@@ -82,7 +82,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets URI for RabbitMQ service.
-     * 
+     *
      * @return the URI.
      */
     public Secret getUserPassword() {
@@ -91,7 +91,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets the list of RMQChannels.
-     * 
+     *
      * @return the list of RMQChannels.
      */
     public Set<AbstractRMQChannel> getRMQChannels() {
@@ -100,7 +100,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets the list of ConsumeRMQChannels.
-     * 
+     *
      * @return the list of ComsumeRMQChannels.
      */
     public Set<ConsumeRMQChannel> getConsumeRMQChannels() {
@@ -115,7 +115,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets the list of PublishRMQChannels.
-     * 
+     *
      * @return the list of PublishRMQChannels.
      */
     public Set<PublishRMQChannel> getPublishRMQChannels() {
@@ -130,7 +130,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets status of channel binds specified queue.
-     * 
+     *
      * @param queueName
      *            the queue name.
      * @return true if channel for specified queue is already established.
@@ -146,7 +146,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Open connection.
-     * 
+     *
      * @throws IOException
      *             thow if connection cannot be opend.
      */
@@ -194,7 +194,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Gets if connection is established.
-     * 
+     *
      * @return true if connection is already established.
      */
     public boolean isOpen() {
@@ -203,7 +203,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Updates each channels.
-     * 
+     *
      * @param consumeItems
      *            the list of consume items.
      */
@@ -231,7 +231,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Creates new channels with specified consume items.
-     * 
+     *
      * @param uniqueQueueNames
      *            the hashset of unique queue names.
      * @param consumeItems
@@ -242,7 +242,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
             LOGGER.warning("Cannot create channel while shutdown.");
             return;
         }
-        
+
         if (uniqueQueueNames == null || consumeItems == null || uniqueQueueNames.isEmpty() || consumeItems.isEmpty()) {
             LOGGER.info("No create new channel due to empty.");
         } else {
@@ -280,7 +280,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
 
     /**
      * Close unused channels.
-     * 
+     *
      * @param usedQueueNames
      *            the hashset of used queue names.
      */
@@ -360,7 +360,6 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
         } else if (rmqChannel instanceof PublishRMQChannel) {
             LOGGER.info("Closed RabbitMQ channel for publish.");
         }
-        rmqChannel.removeRMQChannelListener(this);
         rmqChannels.remove(rmqChannel);
     }
 
@@ -396,12 +395,17 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the event for connection.
      */
     public void notifyRMQConnectionListeners(RMQConnectionEvent event) {
+        Set<RMQConnectionListener> listeners = new HashSet<RMQConnectionListener>();
         for (RMQConnectionListener l : rmqConnectionListeners) {
             if (event == RMQConnectionEvent.CLOSE_COMPLETED) {
                 l.onCloseCompleted(this);
+                listeners.add(l);
             } else if (event == RMQConnectionEvent.OPEN) {
                 l.onOpen(this);
             }
+        }
+        if (listeners.size() > 0) {
+            rmqConnectionListeners.remove(listeners);
         }
     }
 

@@ -1,12 +1,14 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQChannelEvent;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.notifiers.RMQChannelNotifier;
 
 import com.rabbitmq.client.Channel;
@@ -16,7 +18,7 @@ import com.rabbitmq.client.ShutdownSignalException;
 
 /**
  * abstract class for handling RabbitMQ channel.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public abstract class AbstractRMQChannel implements RMQChannelNotifier, ShutdownListener {
@@ -28,7 +30,7 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
 
     /**
      * Creates instance with specified parameters.
-     * 
+     *
      * @param appIds
      *            the hashset of application id.
      */
@@ -37,7 +39,7 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
 
     /**
      * Open connection.
-     * 
+     *
      * @param connection
      *            the instance of Connection, not RMQConnection.
      * @throws IOException
@@ -51,7 +53,7 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
 
     /**
      * Gets instance of Channel, not RMQChannel.
-     * 
+     *
      * @return the instance of Channel.
      */
     public Channel getChannel() {
@@ -105,12 +107,17 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
      *            the event for channel.
      */
     public void notifyRMQChannelListeners(RMQChannelEvent event) {
+        Set<RMQChannelListener> listeners = new HashSet<RMQChannelListener>();
         for (RMQChannelListener l : rmqChannelListeners) {
             if (event == RMQChannelEvent.CLOSE_COMPLETED) {
                 l.onCloseCompleted(this);
+                listeners.add(l);
             } else if (event == RMQChannelEvent.OPEN) {
                 l.onOpen(this);
             }
+        }
+        if (listeners.size() > 0) {
+            rmqChannelListeners.remove(listeners);
         }
     }
 
