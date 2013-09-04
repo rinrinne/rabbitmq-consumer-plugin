@@ -13,14 +13,14 @@ import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 
 /**
  * Manager class for RabbitMQ connection.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public final class RMQManager implements RMQConnectionListener {
 
     /**
      * Intance holder class for {@link RMQManager}.
-     * 
+     *
      * @author rinrinne a.k.a. rin_ne
      */
     private static class InstanceHolder {
@@ -36,7 +36,7 @@ public final class RMQManager implements RMQConnectionListener {
 
     /**
      * Gets instance.
-     * 
+     *
      * @return the instance.
      */
     public static RMQManager getInstance() {
@@ -101,7 +101,7 @@ public final class RMQManager implements RMQConnectionListener {
 
     /**
      * Shutdown connection then wait to close connection.
-     * 
+     *
      * @throws InterruptedException
      *             throw if wait process is interrupted.
      */
@@ -121,7 +121,7 @@ public final class RMQManager implements RMQConnectionListener {
 
     /**
      * Gets whether connection is established or not.
-     * 
+     *
      * @return true if connection is already established.
      */
     public boolean isOpen() {
@@ -130,7 +130,7 @@ public final class RMQManager implements RMQConnectionListener {
 
     /**
      * Gets status of channel for specified queue.
-     * 
+     *
      * @param queueName
      *            the queue name.
      * @return true if channel for specified queue is already established.
@@ -179,6 +179,36 @@ public final class RMQManager implements RMQConnectionListener {
         if (closeLatch != null) {
             closeLatch.countDown();
         }
+    }
+
+    //CS IGNORE LineLength FOR NEXT 8 LINES. REASON: Auto generated code.
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((rmqConnection == null) ? 0 : rmqConnection.hashCode());
+        result = prime * result + (statusOpen ? 1231 : 1237);
+        return result;
+    }
+
+    //CS IGNORE LineLength FOR NEXT 18 LINES. REASON: Auto generated code.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RMQManager other = (RMQManager) obj;
+        if (rmqConnection == null) {
+            if (other.rmqConnection != null)
+                return false;
+        } else if (!rmqConnection.equals(other.rmqConnection))
+            return false;
+        if (statusOpen != other.statusOpen)
+            return false;
+        return true;
     }
 
     /**
