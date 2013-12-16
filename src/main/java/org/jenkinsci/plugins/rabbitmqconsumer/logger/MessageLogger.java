@@ -1,21 +1,20 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.logger;
 
 import hudson.Extension;
-import hudson.ExtensionPoint;
 
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
 
 /**
  * Extension for logging messages. This is debug purpose.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 @Extension
-public class MessageLogger implements ExtensionPoint, ApplicationMessageListener {
+public class MessageLogger extends MessageQueueListener {
     private static final Logger LOGGER = Logger.getLogger(MessageLogger.class.getName());
     private static final String PLUGIN_NAME = "Message Logger for debug";
 

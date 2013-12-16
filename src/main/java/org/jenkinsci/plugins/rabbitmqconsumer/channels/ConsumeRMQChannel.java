@@ -9,8 +9,8 @@ import java.util.logging.Logger;
 import org.jenkinsci.plugins.rabbitmqconsumer.GlobalRabbitmqConfiguration;
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQChannelEvent;
+import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
-import org.jenkinsci.plugins.rabbitmqconsumer.utils.ApplicationMessageNotifyUtil;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
@@ -77,7 +77,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
         try {
             channel.basicConsume(queueName, false, new MessageConsumer(channel));
             consumeStarted = true;
-            ApplicationMessageNotifyUtil.fireOnBind(appIds, queueName);
+            MessageQueueListener.fireOnBind(appIds, queueName);
         } catch (IOException e) {
             LOGGER.info(e.toString());
         }
@@ -121,14 +121,14 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
                 if (debug) {
                     if (appIds.contains(RabbitmqConsumeItem.DEBUG_APPID)) {
-                        ApplicationMessageNotifyUtil.fireOnReceive(debugId, queueName, contentType, body);
+                        MessageQueueListener.fireOnReceive(debugId, queueName, contentType, body);
                     }
                 }
 
                 if (properties.getAppId() != null &&
                         !properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
                     if (appIds.contains(properties.getAppId())) {
-                        ApplicationMessageNotifyUtil.fireOnReceive(appIds, queueName, contentType, body);
+                        MessageQueueListener.fireOnReceive(appIds, queueName, contentType, body);
                     }
                 }
 
@@ -170,7 +170,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
         channel = null;
         consumeStarted = false;
-        ApplicationMessageNotifyUtil.fireOnUnbind(appIds, queueName);
+        MessageQueueListener.fireOnUnbind(appIds, queueName);
         super.shutdownCompleted(shutdownSignalException);
     }
 }

@@ -11,21 +11,23 @@ import org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListen
 
 /**
  * Utility class to notify application message to listener.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
+@Deprecated
 public final class ApplicationMessageNotifyUtil {
     private static final Logger LOGGER = Logger.getLogger(ApplicationMessageNotifyUtil.class.getName());
 
     /**
      * Constructor.
      */
+    @Deprecated
     private ApplicationMessageNotifyUtil() {
     }
 
     /**
      * Fires OnReceive event.
-     * 
+     *
      * @param appIds
      *            the hashset of application ids.
      * @param queueName
@@ -33,6 +35,7 @@ public final class ApplicationMessageNotifyUtil {
      * @param json
      *            the json object.
      */
+    @Deprecated
     public static void fireOnReceive(HashSet<String> appIds, String queueName, String contentType, byte[] body) {
         LOGGER.entering("DefaultApplicationMessageListener", "fireOnReceive");
         for (ApplicationMessageListener l : getAllListeners()) {
@@ -44,12 +47,13 @@ public final class ApplicationMessageNotifyUtil {
 
     /**
      * Fires OnBind event.
-     * 
+     *
      * @param appIds
      *            the hashset of application ids.
      * @param queueName
      *            the queue name.
      */
+    @Deprecated
     public static void fireOnBind(HashSet<String> appIds, String queueName) {
         LOGGER.entering("DefaultApplicationMessageListener", "fireOnBind");
         for (ApplicationMessageListener l : getAllListeners()) {
@@ -61,12 +65,13 @@ public final class ApplicationMessageNotifyUtil {
 
     /**
      * Fires OnUnbind event.
-     * 
+     *
      * @param appIds
      *            the hashset of application ids.
      * @param queueName
      *            the queue name.
      */
+    @Deprecated
     public static void fireOnUnbind(HashSet<String> appIds, String queueName) {
         LOGGER.entering("DefaultApplicationMessageListener", "fireOnUnbind");
         for (ApplicationMessageListener l : getAllListeners()) {
@@ -78,9 +83,10 @@ public final class ApplicationMessageNotifyUtil {
 
     /**
      * Gets all listeners implements {@link ApplicationMessageListener}.
-     * 
+     *
      * @return the extension list implements {@link ApplicationMessageListener}.
      */
+    @Deprecated
     public static ExtensionList<ApplicationMessageListener> getAllListeners() {
         return Jenkins.getInstance().getExtensionList(ApplicationMessageListener.class);
     }

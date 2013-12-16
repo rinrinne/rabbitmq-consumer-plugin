@@ -8,15 +8,14 @@ import hudson.model.Descriptor;
 import hudson.util.ListBoxModel;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener;
-import org.jenkinsci.plugins.rabbitmqconsumer.utils.ApplicationMessageNotifyUtil;
+import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Item class that indicates queue setting in global configuration.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
- * 
+ *
  */
 public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsumeItem> {
 
@@ -30,7 +29,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Creates instance with specific parameters.
-     * 
+     *
      * @param appId
      *            the application id.
      * @param queueName
@@ -50,7 +49,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Gets application id.
-     * 
+     *
      * @return the application id.
      */
     public final String getAppId() {
@@ -59,7 +58,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Sets application id.
-     * 
+     *
      * @param appId the application id.
      */
     public final void setAppId(String appId) {
@@ -68,7 +67,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Gets queue name.
-     * 
+     *
      * @return the queue name.
      */
     public final String getQueueName() {
@@ -77,7 +76,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Sets queue name.
-     * 
+     *
      * @param queueName the queue name.
      */
     public final void setQueueName(String queueName) {
@@ -119,7 +118,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
     /**
      * Implements descriptor for parent class.
-     * 
+     *
      * @author rinrinne a.k.a. rin_ne
      */
     @Extension
@@ -131,14 +130,14 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
 
         /**
          * Fills dropdown list in global configuration using app ids.
-         * 
+         *
          * @return ListBoxModel instance that is filled by app ids.
          */
         public ListBoxModel doFillAppIdItems() {
             ListBoxModel items = new ListBoxModel();
             HashSet<String> appIds = new HashSet<String>();
 
-            for (ApplicationMessageListener l : ApplicationMessageNotifyUtil.getAllListeners()) {
+            for (MessageQueueListener l : MessageQueueListener.all()) {
                 appIds.add(l.getAppId());
             }
             appIds.remove(null);
