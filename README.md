@@ -35,9 +35,11 @@ in pom.xml:
 </project>
 ```
 
-Interface:
+Extension Point:
 
-> org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener
+> org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener
+
+Interface `org.jenkinsci.plugins.rabbitmqconsumer.listeners.ApplicationMessageListener` is obsolated in 2.0. Any implementation classes are no longer called.
 
 Publish messages from your plugin
 ------------------------
@@ -49,6 +51,10 @@ If you want to use them from your plugin, please see the implementation of [Rabb
 Implementaion class:
 
 > org.jenkinsci.plugins.rabbitmqbuildtrigger.RemoteBuildPublisher
+
+Extension Point:
+
+> org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessagePublisher
 
 Interfaces:
 
@@ -62,6 +68,8 @@ Notice
 ------------------------
 
 This plugin does not generates any queues in RabbitMQ. So you should prepare them by yourself.
+
+Interfaces were drastically changed in 2.0. You should not upgrade to 2.0 if you use other plugin for 1.0.
 
 Material
 ------------------------
