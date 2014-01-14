@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -118,17 +119,18 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
                 long deliveryTag = envelope.getDeliveryTag();
                 String contentType = properties.getContentType();
+                Map<String, Object> headers = properties.getHeaders();
 
                 if (debug) {
                     if (appIds.contains(RabbitmqConsumeItem.DEBUG_APPID)) {
-                        MessageQueueListener.fireOnReceive(debugId, queueName, contentType, body);
+                        MessageQueueListener.fireOnReceive(debugId, queueName, contentType, headers, body);
                     }
                 }
 
                 if (properties.getAppId() != null &&
                         !properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
                     if (appIds.contains(properties.getAppId())) {
-                        MessageQueueListener.fireOnReceive(appIds, queueName, contentType, body);
+                        MessageQueueListener.fireOnReceive(appIds, queueName, contentType, headers, body);
                     }
                 }
 

@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.rabbitmqconsumer.logger;
 import hudson.Extension;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
@@ -59,7 +60,7 @@ public class MessageLogger extends MessageQueueListener {
      * @param json
      *            the content of message.
      */
-    public void onReceive(String queueName, String contentType, byte[] body) {
+    public void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body) {
         String msg;
         try {
             msg = new String(body, "UTF-8");

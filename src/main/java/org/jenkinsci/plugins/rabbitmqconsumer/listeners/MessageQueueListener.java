@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.listeners;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import hudson.ExtensionList;
@@ -50,10 +51,12 @@ public abstract class MessageQueueListener implements ExtensionPoint {
      *
      * @param queueName
      *            the queue name.
+     * @param headers
+     *            the map of headers.
      * @param json
      *            the content of message.
      */
-    public abstract void onReceive(String queueName, String contentType, byte[] body);
+    public abstract void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body);
 
     /**
      * Fires OnReceive event.
@@ -62,14 +65,22 @@ public abstract class MessageQueueListener implements ExtensionPoint {
      *            the hashset of application ids.
      * @param queueName
      *            the queue name.
-     * @param json
-     *            the json object.
+     * @param contentType
+     *            the type of content.
+     * @param headers
+     *            the map of headers.
+     * @param body
+     *            the message body.
      */
-    public static void fireOnReceive(HashSet<String> appIds, String queueName, String contentType, byte[] body) {
+    public static void fireOnReceive(HashSet<String> appIds,
+            String queueName,
+            String contentType,
+            Map<String, Object> headers,
+            byte[] body) {
         LOGGER.entering("MessageQueueListener", "fireOnReceive");
         for (MessageQueueListener l : all()) {
             if (appIds.contains(l.getAppId())) {
-                l.onReceive(queueName, contentType, body);
+                l.onReceive(queueName, contentType, headers, body);
             }
         }
     }
