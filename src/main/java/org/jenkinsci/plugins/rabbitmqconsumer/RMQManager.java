@@ -181,36 +181,6 @@ public final class RMQManager implements RMQConnectionListener {
         }
     }
 
-    //CS IGNORE LineLength FOR NEXT 8 LINES. REASON: Auto generated code.
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((rmqConnection == null) ? 0 : rmqConnection.hashCode());
-        result = prime * result + (statusOpen ? 1231 : 1237);
-        return result;
-    }
-
-    //CS IGNORE LineLength FOR NEXT 18 LINES. REASON: Auto generated code.
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RMQManager other = (RMQManager) obj;
-        if (rmqConnection == null) {
-            if (other.rmqConnection != null)
-                return false;
-        } else if (!rmqConnection.equals(other.rmqConnection))
-            return false;
-        if (statusOpen != other.statusOpen)
-            return false;
-        return true;
-    }
-
     /**
      * Creates instance.
      */
