@@ -8,7 +8,7 @@ import hudson.model.Descriptor;
 import hudson.util.ListBoxModel;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import org.jenkinsci.plugins.rabbitmqconsumer.GlobalRabbitmqConfiguration;
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQChannelEvent;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 
 import com.rabbitmq.client.Channel;

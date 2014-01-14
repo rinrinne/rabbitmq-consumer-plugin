@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.rabbitmqconsumer.listeners;
+package org.jenkinsci.plugins.rabbitmqconsumer.extensions;
 
 import java.util.HashSet;
 import java.util.Map;

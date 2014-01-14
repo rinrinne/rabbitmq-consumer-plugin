@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 
 /**
  * Extension for logging messages. This is debug purpose.
