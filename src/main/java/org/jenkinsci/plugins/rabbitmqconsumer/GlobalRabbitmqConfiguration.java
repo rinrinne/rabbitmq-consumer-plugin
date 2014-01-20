@@ -28,7 +28,7 @@ import jenkins.model.GlobalConfiguration;
 
 /**
  * Descriptor for global configuration.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 @Extension
@@ -53,7 +53,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Creates GlobalRabbitmqConfiguration instance with specified parameters.
-     * 
+     *
      * @param enableConsumer
      *            if this feature is enabled.
      * @param serviceUri
@@ -107,7 +107,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets whether debug is enabled or not.
-     * 
+     *
      * @return true if debug is enabled.
      */
     public boolean isEnableDebug() {
@@ -116,7 +116,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets flag whether debug is enabled or not.
-     * 
+     *
      * @param enableDebug true if debug is enabled.
      */
     public void setEnableDebug(boolean enableDebug) {
@@ -125,7 +125,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets whether this plugin is enabled or not.
-     * 
+     *
      * @return true if this plugin is enabled.
      */
     public boolean isEnableConsumer() {
@@ -134,7 +134,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets flag whether this plugin is enabled or not.
-     * 
+     *
      * @param enableConsumer true if this plugin is enabled.
      */
     public void setEnableConsumer(boolean enableConsumer) {
@@ -143,7 +143,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets URI for RabbitMQ service.
-     * 
+     *
      * @return the URI.
      */
     public String getServiceUri() {
@@ -152,7 +152,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets URI for RabbitMQ service.
-     * 
+     *
      * @param serviceUri
      *            the URI.
      */
@@ -162,7 +162,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets username.
-     * 
+     *
      * @return the username.
      */
     public String getUserName() {
@@ -171,7 +171,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets username.
-     * 
+     *
      * @param userName
      *            the username.
      */
@@ -181,7 +181,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets password.
-     * 
+     *
      * @return the password.
      */
     public Secret getUserPassword() {
@@ -190,7 +190,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets password.
-     * 
+     *
      * @param userPassword
      *            the password.
      */
@@ -200,7 +200,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets password.
-     * 
+     *
      * @param userPassword
      *            the password.
      */
@@ -210,7 +210,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Checks given URI is valid.
-     * 
+     *
      * @param value
      *            the URI.
      * @return FormValidation object that indicates ok or error.
@@ -230,7 +230,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Tests connection to given URI.
-     * 
+     *
      * @param serviceUri
      *            the URI.
      * @param userName
@@ -272,7 +272,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets the list of {@link RabbitmqConsumeItem}.
-     * 
+     *
      * @return the list of {@link RabbitmqConsumeItem}
      */
     public List<RabbitmqConsumeItem> getConsumeItems() {
@@ -281,7 +281,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Sets the list of {@link RabbitmqConsumeItem}.
-     * 
+     *
      * @param consumeItems
      *            the list of {@link RabbitmqConsumeItem}
      */
@@ -292,7 +292,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
     /**
      * Gets connection to service is established. Note that this is called by
      * Ajax.
-     * 
+     *
      * @return true if connection is established.
      */
     @JavaScriptMethod
@@ -303,7 +303,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
     /**
      * Gets specified queue is consumed or not. Note that this is called by
      * Ajax.
-     * 
+     *
      * @param queueName
      *            the queue name.
      * @return true if specified queue is already consumed.
@@ -319,7 +319,7 @@ public final class GlobalRabbitmqConfiguration extends GlobalConfiguration {
 
     /**
      * Gets this extension's instance.
-     * 
+     *
      * @return the instance of this extension.
      */
     public static GlobalRabbitmqConfiguration get() {
