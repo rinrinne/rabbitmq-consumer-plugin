@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Logger;
@@ -108,17 +107,12 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
      *            the event for channel.
      */
     public void notifyRMQChannelListeners(RMQChannelEvent event) {
-        Set<RMQChannelListener> listeners = new HashSet<RMQChannelListener>();
         for (RMQChannelListener l : rmqChannelListeners) {
             if (event == RMQChannelEvent.CLOSE_COMPLETED) {
                 l.onCloseCompleted(this);
-                listeners.add(l);
             } else if (event == RMQChannelEvent.OPEN) {
                 l.onOpen(this);
             }
-        }
-        if (listeners.size() > 0) {
-            rmqChannelListeners.remove(listeners);
         }
     }
 

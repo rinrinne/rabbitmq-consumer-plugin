@@ -3,15 +3,12 @@ package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.GlobalRabbitmqConfiguration;
 import org.jenkinsci.plugins.rabbitmqconsumer.RabbitmqConsumeItem;
-import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQChannelEvent;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
-import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
@@ -146,31 +143,10 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
     /**
      * @inheritDoc
-     * @param event
-     *            the event for channel.
-     */
-    public void notifyRMQChannelListeners(RMQChannelEvent event) {
-        Set<RMQChannelListener> listeners = new HashSet<RMQChannelListener>();
-        for (RMQChannelListener l : rmqChannelListeners) {
-            if (event == RMQChannelEvent.CLOSE_COMPLETED) {
-                l.onCloseCompleted(this);
-                listeners.add(l);
-            } else if (event == RMQChannelEvent.OPEN) {
-                l.onOpen(this);
-            }
-        }
-        if (listeners.size() > 0) {
-            rmqChannelListeners.remove(listeners);
-        }
-    }
-
-    /**
-     * @inheritDoc
      * @param shutdownSignalException
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
-        channel = null;
         consumeStarted = false;
         MessageQueueListener.fireOnUnbind(appIds, queueName);
         super.shutdownCompleted(shutdownSignalException);

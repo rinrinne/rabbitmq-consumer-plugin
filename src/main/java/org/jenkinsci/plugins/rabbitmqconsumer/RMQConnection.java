@@ -360,6 +360,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
         } else if (rmqChannel instanceof PublishRMQChannel) {
             LOGGER.info("Closed RabbitMQ channel for publish.");
         }
+        rmqChannel.removeRMQChannelListener(this);
         rmqChannels.remove(rmqChannel);
     }
 
@@ -395,17 +396,12 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the event for connection.
      */
     public void notifyRMQConnectionListeners(RMQConnectionEvent event) {
-        Set<RMQConnectionListener> listeners = new HashSet<RMQConnectionListener>();
         for (RMQConnectionListener l : rmqConnectionListeners) {
             if (event == RMQConnectionEvent.CLOSE_COMPLETED) {
                 l.onCloseCompleted(this);
-                listeners.add(l);
             } else if (event == RMQConnectionEvent.OPEN) {
                 l.onOpen(this);
             }
-        }
-        if (listeners.size() > 0) {
-            rmqConnectionListeners.remove(listeners);
         }
     }
 
