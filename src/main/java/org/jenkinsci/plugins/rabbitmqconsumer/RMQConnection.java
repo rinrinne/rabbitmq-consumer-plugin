@@ -34,7 +34,6 @@ import com.rabbitmq.client.ShutdownSignalException;
 public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQConnectionNotifier {
 
     private static final int TIMEOUT_CONNECTION_MILLIS = 30000;
-    private static final int HEARTBEAT_CONNECTION_SECS = 60;
 
     private static final Logger LOGGER = Logger.getLogger(RMQConnection.class.getName());
 
@@ -59,7 +58,6 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
         this.userPassword = userPassword;
         this.factory = new ConnectionFactory();
         this.factory.setConnectionTimeout(TIMEOUT_CONNECTION_MILLIS);
-        this.factory.setRequestedHeartbeat(HEARTBEAT_CONNECTION_SECS);
     }
 
     /**
