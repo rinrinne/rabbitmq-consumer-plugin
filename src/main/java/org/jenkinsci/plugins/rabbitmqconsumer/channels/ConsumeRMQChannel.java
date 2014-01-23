@@ -29,7 +29,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
     private final String queueName;
     private volatile boolean consumeStarted = false;
 
-    private final boolean debug = GlobalRabbitmqConfiguration.get().isEnableDebug();
+    private final boolean debug;
     @SuppressWarnings("serial")
     private final HashSet<String> debugId = new HashSet<String>() {
         {
@@ -48,6 +48,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
     public ConsumeRMQChannel(String queueName, HashSet<String> appIds) {
         this.appIds = appIds;
         this.queueName = queueName;
+        this.debug = isEnableDebug();
     }
 
     /**
@@ -88,6 +89,15 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
      */
     public boolean isConsumeStarted() {
         return consumeStarted;
+    }
+
+    /**
+     * Gets whether debug mode is enabled or not.
+     *
+     * @return true if debug mode is enabled.
+     */
+    private boolean isEnableDebug() {
+        return GlobalRabbitmqConfiguration.get().isEnableDebug();
     }
 
     /**
