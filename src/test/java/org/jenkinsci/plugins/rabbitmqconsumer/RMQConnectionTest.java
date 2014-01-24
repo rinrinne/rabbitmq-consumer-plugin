@@ -174,4 +174,42 @@ public class RMQConnectionTest {
         }
     }
 
+    @Test
+    public void testDeleteAndAddChannels() {
+
+        new MockUp<RMQConnection>() {
+            @Mock
+            private void closeUnusedConsumeChannels(HashSet<String> usedQueueNames) {
+                queueNames = usedQueueNames;
+            }
+        };
+
+        RMQConnection conn = new RMQConnection("", "", null);
+        RabbitmqConsumeItem item3 = new RabbitmqConsumeItem("app-3", "queue-3");
+        RabbitmqConsumeItem item4 = new RabbitmqConsumeItem("app-4", "queue-4");
+        List<RabbitmqConsumeItem> items = new ArrayList<RabbitmqConsumeItem>();
+        items.add(new RabbitmqConsumeItem("app-1-a", "queue-1"));
+        items.add(new RabbitmqConsumeItem("app-1-b", "queue-1"));
+        items.add(new RabbitmqConsumeItem("app-2", "queue-2"));
+        items.add(item3);
+
+        try {
+            Set<ConsumeRMQChannel> channels;
+            conn.open();
+            conn.updateChannels(items);
+            channels = conn.getConsumeRMQChannels();
+            assertEquals(3, channels.size());
+
+            items.remove(item3);
+            items.add(item4);
+            conn.updateChannels(items);
+            assertFalse(queueNames.contains("queue-3"));
+            assertTrue(queueNames.contains("queue-4"));
+
+            conn.close();
+        } catch (Exception ex) {
+            fail(ex.toString());
+        }
+    }
+
 }
