@@ -30,12 +30,6 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
     private volatile boolean consumeStarted = false;
 
     private final boolean debug;
-    @SuppressWarnings("serial")
-    private final HashSet<String> debugId = new HashSet<String>() {
-        {
-            add(RabbitmqConsumeItem.DEBUG_APPID);
-        }
-    };
 
     /**
      * Creates instance with specified parameters.
@@ -130,14 +124,16 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
 
                 if (debug) {
                     if (appIds.contains(RabbitmqConsumeItem.DEBUG_APPID)) {
-                        MessageQueueListener.fireOnReceive(debugId, queueName, contentType, headers, body);
+                        MessageQueueListener.fireOnReceive(RabbitmqConsumeItem.DEBUG_APPID,
+                                queueName, contentType, headers, body);
                     }
                 }
 
                 if (properties.getAppId() != null &&
                         !properties.getAppId().equals(RabbitmqConsumeItem.DEBUG_APPID)) {
                     if (appIds.contains(properties.getAppId())) {
-                        MessageQueueListener.fireOnReceive(appIds, queueName, contentType, headers, body);
+                        MessageQueueListener.fireOnReceive(properties.getAppId(),
+                                queueName, contentType, headers, body);
                     }
                 }
 

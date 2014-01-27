@@ -61,8 +61,8 @@ public abstract class MessageQueueListener implements ExtensionPoint {
     /**
      * Fires OnReceive event.
      *
-     * @param appIds
-     *            the hashset of application ids.
+     * @param appId
+     *            the application id.
      * @param queueName
      *            the queue name.
      * @param contentType
@@ -72,14 +72,14 @@ public abstract class MessageQueueListener implements ExtensionPoint {
      * @param body
      *            the message body.
      */
-    public static void fireOnReceive(HashSet<String> appIds,
+    public static void fireOnReceive(String appId,
             String queueName,
             String contentType,
             Map<String, Object> headers,
             byte[] body) {
         LOGGER.entering("MessageQueueListener", "fireOnReceive");
         for (MessageQueueListener l : all()) {
-            if (appIds.contains(l.getAppId())) {
+            if (appId.equals(l.getAppId())) {
                 l.onReceive(queueName, contentType, headers, body);
             }
         }
