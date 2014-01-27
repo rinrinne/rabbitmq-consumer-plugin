@@ -42,7 +42,7 @@ public class RMQConnectionTest {
     ReconnectTimer timer = new ReconnectTimer();
 
     @Mocked
-    MessageQueueListener mqListener;
+    MessageQueueListener mqListener = null;
 
     Connection connection;
     Channel channel;
