@@ -2,18 +2,22 @@ package org.jenkinsci.plugins.rabbitmqconsumer;
 
 import static org.junit.Assert.*;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import mockit.Invocation;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.watchdog.ReconnectTimer;
 import org.junit.After;
 import org.junit.Before;
@@ -37,10 +41,22 @@ public class RMQConnectionTest {
     @Mocked
     ReconnectTimer timer = new ReconnectTimer();
 
+    @Mocked
+    MessageQueueListener mqListener;
+
     Connection connection;
     Channel channel;
 
-    HashSet<String> queueNames;
+    RMQConnectionListener connListener = new RMQConnectionListener() {
+
+        public void onOpen(RMQConnection rmqConnection) {
+            System.out.println("Open RMQConnection.");
+        }
+
+        public void onCloseCompleted(RMQConnection rmqConnection) {
+            System.out.println("Closed RMQConnection.");
+        }
+    };
 
     @Before
     public void setUp() throws Exception {
@@ -50,7 +66,6 @@ public class RMQConnectionTest {
             Channel createChannel() {
                 return channel;
             }
-
         }.getMockInstance();
 
         new MockUp<ConsumeRMQChannel>() {
@@ -60,11 +75,23 @@ public class RMQConnectionTest {
             }
 
             @Mock
-            public void consume() {
+            public void close(Invocation invocation) {
+                ConsumeRMQChannel ch = invocation.getInvokedInstance();
+                ch.shutdownCompleted(null);
+            }
+        };
+
+        new MockUp<RMQConnection>() {
+            @Mock
+            public void close(Invocation invocation) {
+                invocation.proceed();
+                RMQConnection conn = invocation.getInvokedInstance();
+                conn.shutdownCompleted(null);
             }
         };
 
         new NonStrictExpectations() {{
+            MessageQueueListener.all();
             factory.setConnectionTimeout(anyInt);
             factory.setRequestedHeartbeat(anyInt);
             factory.setUri(anyString);
@@ -83,6 +110,7 @@ public class RMQConnectionTest {
     @Test
     public void testOpenChannels() {
         RMQConnection conn = new RMQConnection("", "", null);
+        conn.addRMQConnectionListener(connListener);
         List<RabbitmqConsumeItem> items = new ArrayList<RabbitmqConsumeItem>();
         items.add(new RabbitmqConsumeItem("app-1-a", "queue-1"));
         items.add(new RabbitmqConsumeItem("app-1-b", "queue-1"));
@@ -114,6 +142,7 @@ public class RMQConnectionTest {
     @Test
     public void testAddChannels() {
         RMQConnection conn = new RMQConnection("", "", null);
+        conn.addRMQConnectionListener(connListener);
         List<RabbitmqConsumeItem> items = new ArrayList<RabbitmqConsumeItem>();
         items.add(new RabbitmqConsumeItem("app-1-a", "queue-1"));
         items.add(new RabbitmqConsumeItem("app-1-b", "queue-1"));
@@ -140,15 +169,8 @@ public class RMQConnectionTest {
 
     @Test
     public void testDeleteChannels() {
-
-        new MockUp<RMQConnection>() {
-            @Mock
-            private void closeUnusedConsumeChannels(HashSet<String> usedQueueNames) {
-                queueNames = usedQueueNames;
-            }
-        };
-
         RMQConnection conn = new RMQConnection("", "", null);
+        conn.addRMQConnectionListener(connListener);
         RabbitmqConsumeItem item = new RabbitmqConsumeItem("app-4", "queue-4");
         List<RabbitmqConsumeItem> items = new ArrayList<RabbitmqConsumeItem>();
         items.add(new RabbitmqConsumeItem("app-1-a", "queue-1"));
@@ -166,7 +188,8 @@ public class RMQConnectionTest {
 
             items.remove(item);
             conn.updateChannels(items);
-            assertFalse(queueNames.contains("queue-4"));
+            channels = conn.getConsumeRMQChannels();
+            assertEquals(3, channels.size());
 
             conn.close();
         } catch (Exception ex) {
@@ -176,15 +199,8 @@ public class RMQConnectionTest {
 
     @Test
     public void testDeleteAndAddChannels() {
-
-        new MockUp<RMQConnection>() {
-            @Mock
-            private void closeUnusedConsumeChannels(HashSet<String> usedQueueNames) {
-                queueNames = usedQueueNames;
-            }
-        };
-
         RMQConnection conn = new RMQConnection("", "", null);
+        conn.addRMQConnectionListener(connListener);
         RabbitmqConsumeItem item3 = new RabbitmqConsumeItem("app-3", "queue-3");
         RabbitmqConsumeItem item4 = new RabbitmqConsumeItem("app-4", "queue-4");
         List<RabbitmqConsumeItem> items = new ArrayList<RabbitmqConsumeItem>();
@@ -203,9 +219,14 @@ public class RMQConnectionTest {
             items.remove(item3);
             items.add(item4);
             conn.updateChannels(items);
-            assertFalse(queueNames.contains("queue-3"));
-            assertTrue(queueNames.contains("queue-4"));
-
+            channels = conn.getConsumeRMQChannels();
+            assertEquals(3, channels.size());
+            HashSet<String> queueNames = new HashSet<String>();
+            for (ConsumeRMQChannel ch : channels) {
+                queueNames.add(ch.getQueueName());
+            }
+          assertFalse(queueNames.contains("queue-3"));
+          assertTrue(queueNames.contains("queue-4"));
             conn.close();
         } catch (Exception ex) {
             fail(ex.toString());
