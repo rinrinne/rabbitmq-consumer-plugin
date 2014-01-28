@@ -9,9 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import mockit.Invocation;
-import mockit.Mock;
-import mockit.MockUp;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
@@ -20,10 +17,11 @@ import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.watchdog.ReconnectTimer;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
@@ -42,61 +40,32 @@ public class RMQConnectionTest {
     ReconnectTimer timer = new ReconnectTimer();
 
     @Mocked
-    MessageQueueListener mqListener = null;
+    MessageQueueListener mqListener = null;     /* dummy */
 
+    @Mocked
     Connection connection;
-    Channel channel;
 
-    RMQConnectionListener connListener = new RMQConnectionListener() {
+    RMQConnectionListener connListener = new Mocks.RMQConnectionListenerMock();
 
-        public void onOpen(RMQConnection rmqConnection) {
-            System.out.println("Open RMQConnection.");
-        }
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        new Mocks.RMQConnectionMock();
+        new Mocks.ComsumeRMQChannelMock();
+    }
 
-        public void onCloseCompleted(RMQConnection rmqConnection) {
-            System.out.println("Closed RMQConnection.");
-        }
-    };
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+    }
 
     @Before
     public void setUp() throws Exception {
-        channel = new MockUp<Channel>() {}.getMockInstance();
-        connection = new MockUp<Connection>() {
-            @Mock
-            Channel createChannel() {
-                return channel;
-            }
-        }.getMockInstance();
-
-        new MockUp<ConsumeRMQChannel>() {
-            @Mock
-            private boolean isEnableDebug() {
-                return false;
-            }
-
-            @Mock
-            public void close(Invocation invocation) {
-                ConsumeRMQChannel ch = invocation.getInvokedInstance();
-                ch.shutdownCompleted(null);
-            }
-        };
-
-        new MockUp<RMQConnection>() {
-            @Mock
-            public void close(Invocation invocation) {
-                invocation.proceed();
-                RMQConnection conn = invocation.getInvokedInstance();
-                conn.shutdownCompleted(null);
-            }
-        };
-
         new NonStrictExpectations() {{
+            connection.createChannel(); result = new Mocks.ChannelMock().getMockInstance();
             MessageQueueListener.all();
             factory.setConnectionTimeout(anyInt);
             factory.setRequestedHeartbeat(anyInt);
             factory.setUri(anyString);
             factory.newConnection(); result = connection;
-            channel.close();
             ReconnectTimer.get(); result = timer;
             timer.start();
             timer.stop();

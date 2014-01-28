@@ -5,21 +5,13 @@ import static org.hamcrest.CoreMatchers.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
-import mockit.Delegate;
-import mockit.Invocation;
-import mockit.Mock;
-import mockit.MockUp;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
 import org.apache.commons.codec.CharEncoding;
+import org.jenkinsci.plugins.rabbitmqconsumer.Mocks;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 import org.junit.After;
@@ -29,38 +21,28 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.Envelope;
 
+/**
+ * Test for ConsumeRMQChannel class.
+ *
+ * @author rinrinne a.k.a. rin_ne
+ */
 public class ConsumeRMQChannelTest {
 
-    RMQChannelListener chListener = new RMQChannelListener() {
-
-        public void onOpen(AbstractRMQChannel rmqChannel) {
-            System.out.println("Open ConsumeRMQChannel.");
-        }
-
-        public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
-            System.out.println("Closed ConsumeRMQChannel.");
-        }
-    };
+    @Mocked
+    Connection connection;
 
     @Mocked
-    MessageQueueListener mqListener = null;
+    MessageQueueListener mqListener = null;     /* dummy */
 
-    MessageQueueListener listener;
-    final Set<MessageQueueListener> mqListenerSet = new CopyOnWriteArraySet<MessageQueueListener>();
-
-    final Stack<Consumer> consumerPool = new Stack<Consumer>();
-    final List<String> responseArray = new CopyOnWriteArrayList<String>();
-
-    Connection connection;
-    Channel channel;
+    RMQChannelListener chListener = new Mocks.RMQChannelListenerMock();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        new Mocks.ComsumeRMQChannelMock();
     }
 
     @AfterClass
@@ -69,133 +51,28 @@ public class ConsumeRMQChannelTest {
 
     @Before
     public void setUp() throws Exception {
-        channel = new MockUp<Channel>() {
-            @Mock
-            public String basicConsume(Invocation invocation, String queue, boolean autoAck, Consumer callback) {
-                consumerPool.push(callback);
-                return "consumerTag";
-            }
-        }.getMockInstance();
-        connection = new MockUp<Connection>() {
-            @Mock
-            Channel createChannel() {
-                return channel;
-            }
-        }.getMockInstance();
+        MessageQueueListener listener;
+        listener = new Mocks.MessageQueueListenerMock("listener-1", "app-1");
+        Mocks.mqListenerSet.add(listener);
 
-        new MockUp<ConsumeRMQChannel>() {
-            @Mock
-            private boolean isEnableDebug() {
-                return false;
-            }
-
-            @Mock
-            public void close(Invocation invocation) {
-                invocation.proceed();
-                ConsumeRMQChannel ch = invocation.getInvokedInstance();
-                ch.shutdownCompleted(null);
-            }
-        };
-
-        listener = new MessageQueueListener() {
-
-            @Override
-            public String getName() {
-                return "listener-1";
-            }
-
-            @Override
-            public String getAppId() {
-                return "app-1";
-            }
-            @Override
-            public void onBind(String queueName) {
-                System.out.println("Bind queue: " + queueName);
-            }
-
-            @Override
-            public void onUnbind(String queueName) {
-                System.out.println("Unbind queue: " + queueName);
-            }
-
-            @Override
-            public void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body) {
-                System.out.println("Received: " + queueName);
-                responseArray.add(getName());
-            }
-        };
-        mqListenerSet.add(listener);
-
-        listener = new MessageQueueListener() {
-
-            @Override
-            public String getName() {
-                return "listener-2";
-            }
-
-            @Override
-            public String getAppId() {
-                return "app-2";
-            }
-            @Override
-            public void onBind(String queueName) {
-                System.out.println("Bind queue: " + queueName);
-            }
-
-            @Override
-            public void onUnbind(String queueName) {
-                System.out.println("Unbind queue: " + queueName);
-            }
-
-            @Override
-            public void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body) {
-                responseArray.add(getName());
-            }
-        };
-        mqListenerSet.add(listener);
+        listener = new Mocks.MessageQueueListenerMock("listener-2", "app-2");
+        Mocks.mqListenerSet.add(listener);
 
         new NonStrictExpectations() {{
-            channel.close();
-            channel.basicAck(anyLong, anyBoolean);
+            connection.createChannel(); result = new Mocks.ChannelMock().getMockInstance();
 
             MessageQueueListener.fireOnBind((HashSet<String>) any, anyString);
-            result = new Delegate() {
-                void fireOnBind(HashSet<String> appIds, String queueName) {
-                    for (MessageQueueListener l : mqListenerSet) {
-                        if (appIds.contains(l.getAppId())) {
-                            l.onBind(queueName);
-                        }
-                    }
-                }
-            };
+            result = new Mocks.OnBindDelegation();
+
             MessageQueueListener.fireOnUnbind((HashSet<String>) any, anyString);
-            result = new Delegate() {
-                void fireOnBind(HashSet<String> appIds, String queueName) {
-                    for (MessageQueueListener l : mqListenerSet) {
-                        if (appIds.contains(l.getAppId())) {
-                            l.onUnbind(queueName);
-                        }
-                    }
-                }
-            };
+            result = new Mocks.OnUnbindDelegation();
+
             MessageQueueListener.fireOnReceive(anyString,
                     anyString,
                     anyString,
                     (Map<String, Object>) any,
                     (byte[]) any);
-            result = new Delegate() {
-                void fireOnReceive(String appId,
-                        String queueName,
-                        String contentType,
-                        Map<String, Object> headers,
-                        byte[] body) {
-                    for (MessageQueueListener l : mqListenerSet) {
-                        if (appId.equals(l.getAppId())) {
-                            l.onReceive(queueName, contentType, headers, body);
-                        }
-                    }
-                }
-            };
+            result = new Mocks.OnReceiveDelegation();
         }};
     }
 
@@ -222,11 +99,11 @@ public class ConsumeRMQChannelTest {
             channel.open(connection);
             channel.consume();
 
-            Consumer consumer = consumerPool.pop();
+            Consumer consumer = Mocks.consumerPool.pop();
             consumer.handleDelivery("consumerTag", envelope, props, "Test message".getBytes());
 
-            assertEquals(1, responseArray.size());
-            assertThat("Unmatch consumed queue.", responseArray.get(0), is("listener-1"));
+            assertEquals("Unmatched response size", 1, Mocks.responseArray.size());
+            assertThat("Unmatch consumed queue.", Mocks.responseArray.get(0), is("listener-1"));
             channel.close();
         } catch (Exception ex) {
             fail(ex.toString());
