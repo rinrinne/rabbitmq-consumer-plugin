@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,7 @@ import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Consumer;
@@ -31,7 +31,7 @@ import com.rabbitmq.client.Consumer;
  */
 public class Mocks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Mocks.class);
+    private static final Logger LOGGER = Logger.getLogger(Mocks.class.getName());
 
     public static final Stack<Consumer> consumerPool = new Stack<Consumer>();
     public static final List<String> responseArray = new CopyOnWriteArrayList<String>();
@@ -80,12 +80,12 @@ public class Mocks {
 
     public static final class RMQChannelListenerMock implements RMQChannelListener {
         public void onOpen(AbstractRMQChannel rmqChannel) {
-            LOGGER.info("Open ConsumeRMQChannelMock channel " + rmqChannel.getChannel().getChannelNumber()
-                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
+            LOGGER.info(MessageFormat.format("Open ConsumeRMQChannelMock channel {0} for {1}.",
+                    rmqChannel.getChannel().getChannelNumber(), ((ConsumeRMQChannel)rmqChannel).getQueueName()));
         }
         public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
-            LOGGER.info("Closed ConsumeRMQChannelMock channel " + rmqChannel.getChannel().getChannelNumber()
-                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
+            LOGGER.info(MessageFormat.format("Closed ConsumeRMQChannelMock channel {0} for {1}.",
+                    rmqChannel.getChannel().getChannelNumber(), ((ConsumeRMQChannel)rmqChannel).getQueueName()));
         }
     }
 
@@ -118,15 +118,15 @@ public class Mocks {
         }
         @Override
         public void onBind(String queueName) {
-            LOGGER.info("Bind queue: " + queueName);
+            LOGGER.info(MessageFormat.format("<{0}> Bind queue: {1}", name, queueName));
         }
         @Override
         public void onUnbind(String queueName) {
-            LOGGER.info("Unbind queue: " + queueName);
+            LOGGER.info(MessageFormat.format("<{0}> Unbind queue: {1}",name, queueName));
         }
         @Override
         public void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body) {
-            LOGGER.info("Received: " + queueName);
+            LOGGER.info(MessageFormat.format("<{0}> Received: {1}", name, queueName));
             responseArray.add(getName());
         }
     }
