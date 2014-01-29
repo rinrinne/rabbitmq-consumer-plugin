@@ -18,6 +18,8 @@ import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Consumer;
@@ -28,6 +30,8 @@ import com.rabbitmq.client.Consumer;
  * @author rinrinne a.k.a. rin_ne
  */
 public class Mocks {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Mocks.class);
 
     public static final Stack<Consumer> consumerPool = new Stack<Consumer>();
     public static final List<String> responseArray = new CopyOnWriteArrayList<String>();
@@ -76,19 +80,21 @@ public class Mocks {
 
     public static final class RMQChannelListenerMock implements RMQChannelListener {
         public void onOpen(AbstractRMQChannel rmqChannel) {
-            System.out.println("Open ConsumeRMQChannel.");
+            LOGGER.info("Open ConsumeRMQChannelMock channel " + rmqChannel.getChannel().getChannelNumber()
+                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
         }
         public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
-            System.out.println("Closed ConsumeRMQChannel.");
+            LOGGER.info("Closed ConsumeRMQChannelMock channel " + rmqChannel.getChannel().getChannelNumber()
+                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
         }
     }
 
     public static final class RMQConnectionListenerMock implements RMQConnectionListener {
         public void onOpen(RMQConnection rmqConnection) {
-            System.out.println("Open RMQConnection.");
+            LOGGER.info("Open RabbitMQ connection.");
         }
         public void onCloseCompleted(RMQConnection rmqConnection) {
-            System.out.println("Closed RMQConnection.");
+            LOGGER.info("Open RabbitMQ connection.");
         }
     }
 
@@ -112,15 +118,15 @@ public class Mocks {
         }
         @Override
         public void onBind(String queueName) {
-            System.out.println("Bind queue: " + queueName);
+            LOGGER.info("Bind queue: " + queueName);
         }
         @Override
         public void onUnbind(String queueName) {
-            System.out.println("Unbind queue: " + queueName);
+            LOGGER.info("Unbind queue: " + queueName);
         }
         @Override
         public void onReceive(String queueName, String contentType, Map<String, Object> headers, byte[] body) {
-            System.out.println("Received: " + queueName);
+            LOGGER.info("Received: " + queueName);
             responseArray.add(getName());
         }
     }
