@@ -172,10 +172,13 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onCloseCompleted(RMQConnection rmqConnection) {
+        if (rmqConnection != this.rmqConnection) {
+            return;
+        }
         LOGGER.info("Closed RabbitMQ connection.");
         statusOpen = false;
-        rmqConnection.removeRMQConnectionListener(this);
-        rmqConnection = null;
+        this.rmqConnection.removeRMQConnectionListener(this);
+        this.rmqConnection = null;
         if (closeLatch != null) {
             closeLatch.countDown();
         }
