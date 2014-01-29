@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.rabbitmqconsumer;
 import hudson.util.Secret;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -162,7 +163,9 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onOpen(RMQConnection rmqConnection) {
-        LOGGER.info("Open RabbitMQ connection: " + rmqConnection.getServiceUri());
+        LOGGER.info(MessageFormat.format(
+                "Open RabbitMQ connection: {0}",
+                rmqConnection.getServiceUri()));
         statusOpen = true;
     }
 
@@ -172,7 +175,9 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onCloseCompleted(RMQConnection rmqConnection) {
-        LOGGER.info("Closed RabbitMQ connection: " + rmqConnection.getServiceUri());
+        LOGGER.info(MessageFormat.format(
+                "Closed RabbitMQ connection: {0}",
+                rmqConnection.getServiceUri()));
         rmqConnection.removeRMQConnectionListener(this);
         if (rmqConnection == this.rmqConnection) {
             statusOpen = false;

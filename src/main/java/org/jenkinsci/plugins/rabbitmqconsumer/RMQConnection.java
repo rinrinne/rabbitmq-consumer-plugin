@@ -5,6 +5,7 @@ import hudson.util.Secret;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -340,11 +341,15 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     public void onOpen(AbstractRMQChannel rmqChannel) {
         if (rmqChannel instanceof ConsumeRMQChannel) {
             ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
-            LOGGER.info("Open RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber()
-                    + " for " + consumeChannel.getQueueName() + ".");
+            LOGGER.info(MessageFormat.format(
+                    "Open RabbitMQ channel {0} for {1}.",
+                    rmqChannel.getChannel().getChannelNumber(),
+                    consumeChannel.getQueueName()));
             consumeChannel.consume();
         } else if (rmqChannel instanceof PublishRMQChannel) {
-            LOGGER.info("Open RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber() + " for publish.");
+            LOGGER.info(MessageFormat.format(
+                    "Open RabbitMQ channel {0} for publish.",
+                    rmqChannel.getChannel().getChannelNumber()));
         }
     }
 
@@ -355,10 +360,15 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
         if (rmqChannel instanceof ConsumeRMQChannel) {
-            LOGGER.info("Closed RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber()
-                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
+            ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
+            LOGGER.info(MessageFormat.format(
+                    "Closed RabbitMQ channel {0} for {1}.",
+                    rmqChannel.getChannel().getChannelNumber(),
+                    consumeChannel.getQueueName()));
         } else if (rmqChannel instanceof PublishRMQChannel) {
-            LOGGER.info("Closed RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber() + " for publish.");
+            LOGGER.info(MessageFormat.format(
+                    "Closed RabbitMQ channel {0} for publish.",
+                    rmqChannel.getChannel().getChannelNumber()));
         }
         rmqChannel.removeRMQChannelListener(this);
         rmqChannels.remove(rmqChannel);
