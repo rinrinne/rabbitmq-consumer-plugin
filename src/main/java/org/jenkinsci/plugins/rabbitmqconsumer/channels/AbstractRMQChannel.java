@@ -136,7 +136,7 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
-        channel = null;
         notifyOnCloseCompleted();
+        channel = null;
     }
 }

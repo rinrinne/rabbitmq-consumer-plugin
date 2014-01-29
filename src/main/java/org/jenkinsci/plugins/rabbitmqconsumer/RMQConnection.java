@@ -423,8 +423,8 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
-        connection = null;
         notifyOnCloseCompleted();
+        connection = null;
     }
 
     //CS IGNORE LineLength FOR NEXT 12 LINES. REASON: Auto generated code.
