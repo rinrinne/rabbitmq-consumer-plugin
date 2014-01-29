@@ -340,10 +340,11 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     public void onOpen(AbstractRMQChannel rmqChannel) {
         if (rmqChannel instanceof ConsumeRMQChannel) {
             ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
-            LOGGER.info("Open RabbitMQ channel for " + consumeChannel.getQueueName() + ".");
+            LOGGER.info("Open RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber()
+                    + " for " + consumeChannel.getQueueName() + ".");
             consumeChannel.consume();
         } else if (rmqChannel instanceof PublishRMQChannel) {
-            LOGGER.info("Open RabbitMQ channel for publish.");
+            LOGGER.info("Open RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber() + " for publish.");
         }
     }
 
@@ -354,9 +355,10 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
         if (rmqChannel instanceof ConsumeRMQChannel) {
-            LOGGER.info("Closed RabbitMQ channel for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
+            LOGGER.info("Closed RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber()
+                    + " for " + ((ConsumeRMQChannel)rmqChannel).getQueueName() + ".");
         } else if (rmqChannel instanceof PublishRMQChannel) {
-            LOGGER.info("Closed RabbitMQ channel for publish.");
+            LOGGER.info("Closed RabbitMQ channel " + rmqChannel.getChannel().getChannelNumber() + " for publish.");
         }
         rmqChannel.removeRMQChannelListener(this);
         rmqChannels.remove(rmqChannel);

@@ -162,7 +162,7 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onOpen(RMQConnection rmqConnection) {
-        LOGGER.info("Open RabbitMQ connection.");
+        LOGGER.info("Open RabbitMQ connection: " + rmqConnection.getServiceUri());
         statusOpen = true;
     }
 
@@ -172,7 +172,7 @@ public final class RMQManager implements RMQConnectionListener {
      *            the connection.
      */
     public void onCloseCompleted(RMQConnection rmqConnection) {
-        LOGGER.info("Closed RabbitMQ connection.");
+        LOGGER.info("Closed RabbitMQ connection: " + rmqConnection.getServiceUri());
         rmqConnection.removeRMQConnectionListener(this);
         if (rmqConnection == this.rmqConnection) {
             statusOpen = false;

@@ -33,8 +33,8 @@ public class Mocks {
     public static final List<String> responseArray = new CopyOnWriteArrayList<String>();
     public static final Set<MessageQueueListener> mqListenerSet = new CopyOnWriteArraySet<MessageQueueListener>();
 
-
     public static final class ChannelMock extends MockUp<Channel> {
+
         @Mock
         public void close() {
         }
