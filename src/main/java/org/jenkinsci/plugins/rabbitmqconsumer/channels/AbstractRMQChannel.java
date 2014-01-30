@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.rabbitmqconsumer.channels;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Logger;
@@ -136,6 +137,9 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
+        if (shutdownSignalException != null && !shutdownSignalException.isInitiatedByApplication()) {
+            LOGGER.warning(MessageFormat.format("RabbitMQ channel {0} was suddenly closed.", channel.getChannelNumber()));
+        }
         notifyOnCloseCompleted();
         channel = null;
     }

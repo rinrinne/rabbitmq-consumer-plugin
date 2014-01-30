@@ -435,6 +435,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the exception.
      */
     public void shutdownCompleted(ShutdownSignalException shutdownSignalException) {
+        if (shutdownSignalException != null && !shutdownSignalException.isInitiatedByApplication()) {
+            LOGGER.warning("RabbitMQ connection was suddenly disconnected.");
+        }
         notifyOnCloseCompleted();
         connection = null;
     }

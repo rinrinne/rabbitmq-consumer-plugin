@@ -96,7 +96,11 @@ public final class RMQManager implements RMQConnectionListener {
      */
     public void shutdown() {
         if (rmqConnection != null) {
-            rmqConnection.close();
+            try {
+                rmqConnection.close();
+            } finally {
+                rmqConnection = null;
+            }
         }
     }
 
@@ -179,12 +183,9 @@ public final class RMQManager implements RMQConnectionListener {
                 "Closed RabbitMQ connection: {0}",
                 rmqConnection.getServiceUri()));
         rmqConnection.removeRMQConnectionListener(this);
-        if (rmqConnection == this.rmqConnection) {
-            statusOpen = false;
-            this.rmqConnection = null;
-            if (closeLatch != null) {
-                closeLatch.countDown();
-            }
+        statusOpen = false;
+        if (closeLatch != null) {
+            closeLatch.countDown();
         }
     }
 
