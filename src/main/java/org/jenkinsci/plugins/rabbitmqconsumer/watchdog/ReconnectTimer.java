@@ -8,7 +8,7 @@ import hudson.model.AperiodicWork;
 
 /**
  * Reconnect timer class.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 @Extension
@@ -18,26 +18,28 @@ public class ReconnectTimer extends AperiodicWork {
     private static final long INITIAL_DELAY_TIME = 600000;
 
     private volatile boolean stopRequested;
+    private volatile boolean updateChannelRequested;
     private long reccurencePeriod;
 
     /**
      * Creates instance.
      */
     public ReconnectTimer() {
-        this(DEFAULT_RECCURENCE_TIME, false);
+        this(DEFAULT_RECCURENCE_TIME, false, false);
     }
 
     /**
      * Creates instance with specified parameters.
-     * 
+     *
      * @param reccurencePeriod
      *            the reccurence period in millis.
      * @param stopRequested
      *            true if stop timer is requested.
      */
-    public ReconnectTimer(long reccurencePeriod, boolean stopRequested) {
+    public ReconnectTimer(long reccurencePeriod, boolean stopRequested, boolean updateChannelRequested) {
         this.reccurencePeriod = reccurencePeriod;
         this.stopRequested = stopRequested;
+        this.updateChannelRequested = updateChannelRequested;
     }
 
     @Override
@@ -47,12 +49,19 @@ public class ReconnectTimer extends AperiodicWork {
 
     /**
      * Sets recurrence period.
-     * 
+     *
      * @param reccurencePeriod
      *            the recurrnce period in millis.
      */
     public void setRecurrencePeriod(long reccurencePeriod) {
         this.reccurencePeriod = reccurencePeriod;
+    }
+
+    /**
+     * Request updating channel.
+     */
+    public void updateChannel() {
+        updateChannelRequested = true;
     }
 
     @Override
@@ -62,7 +71,7 @@ public class ReconnectTimer extends AperiodicWork {
 
     @Override
     public AperiodicWork getNewInstance() {
-        return new ReconnectTimer(reccurencePeriod, stopRequested);
+        return new ReconnectTimer(reccurencePeriod, stopRequested, updateChannelRequested);
     }
 
     @Override
@@ -71,9 +80,16 @@ public class ReconnectTimer extends AperiodicWork {
             RMQManager manager = RMQManager.getInstance();
             GlobalRabbitmqConfiguration config = GlobalRabbitmqConfiguration.get();
 
-            if (config.isEnableConsumer() && !manager.isOpen()) {
-                logger.info("watchdog: Reconnect requesting..");
-                RMQManager.getInstance().update();
+            if (config.isEnableConsumer()) {
+                if (!manager.isOpen()) {
+                    logger.info("watchdog: Reconnect requesting..");
+                    RMQManager.getInstance().update();
+                    updateChannelRequested = false;
+                } else if (updateChannelRequested) {
+                    logger.info("watchdog: channel update requesting..");
+                    RMQManager.getInstance().update();
+                    updateChannelRequested = false;
+                }
             }
         }
     }
@@ -94,7 +110,7 @@ public class ReconnectTimer extends AperiodicWork {
 
     /**
      * Gets this extension from extension list.
-     * 
+     *
      * @return the instance of this plugin.
      */
     public static ReconnectTimer get() {

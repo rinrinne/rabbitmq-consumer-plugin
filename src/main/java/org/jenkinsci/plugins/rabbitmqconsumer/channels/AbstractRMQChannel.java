@@ -63,12 +63,18 @@ public abstract class AbstractRMQChannel implements RMQChannelNotifier, Shutdown
 
     /**
      * Close channel.
+     *
+     * @throws IOException throws if something error.
      */
-    public void close() {
-        try {
-            channel.close();
-        } catch (IOException e) {
-            LOGGER.warning("Could not close channel. but go forward.");
+    public void close() throws IOException {
+        if (channel != null) {
+            try {
+                channel.close();
+            } catch (IOException ex) {
+                notifyOnCloseCompleted();
+                channel = null;
+                throw ex;
+            }
         }
     }
 

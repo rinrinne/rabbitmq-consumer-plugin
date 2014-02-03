@@ -15,8 +15,10 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.events.RMQConnectionEvent;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.notifiers.RMQConnectionNotifier;
@@ -95,6 +97,20 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     public Set<AbstractRMQChannel> getRMQChannels() {
         return rmqChannels;
+    }
+
+    /**
+     * Gets ControlRMQChannel.
+     *
+     * @return ControlRMQChannel.
+     */
+    public ControlRMQChannel getControlRMQChannel() {
+        for (AbstractRMQChannel ch : rmqChannels) {
+            if (ch instanceof ControlRMQChannel) {
+                return (ControlRMQChannel) ch;
+            }
+        }
+        return null;
     }
 
     /**
@@ -209,6 +225,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     public void updateChannels(List<RabbitmqConsumeItem> consumeItems) {
         HashSet<String> uniqueQueueNames = new HashSet<String>();
 
+        updateControlChannel();
         updatePublishChannel();
 
         if (consumeItems == null) {
@@ -252,6 +269,8 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                 existingQueueNames.add(h.getQueueName());
             }
 
+            ControlRMQChannel contch = getControlRMQChannel();
+
             // create non-existing channels
             for (String queueName : uniqueQueueNames) {
                 if (!existingQueueNames.contains(queueName)) {
@@ -263,13 +282,28 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                     }
                     appIds.remove(GlobalRabbitmqConfiguration.CONTENT_NONE);
                     if (!appIds.isEmpty()) {
+                        ConsumeRMQChannel ch = new ConsumeRMQChannel(queueName, appIds);
+                        ch.addRMQChannelListener(this);
                         try {
-                            ConsumeRMQChannel ch = new ConsumeRMQChannel(queueName, appIds);
-                            ch.addRMQChannelListener(this);
                             ch.open(connection);
                             rmqChannels.add(ch);
                         } catch (IOException e) {
                             LOGGER.warning(e.toString());
+                            ch.removeRMQChannelListener(this);
+                            continue;
+                        }
+
+                        try {
+                            ServerOperator.fireOnOpenConsumer(contch, queueName, appIds);
+                        } catch (IOException ex) {
+                            LOGGER.warning(ex.toString());
+                            try {
+                                contch.close();
+                            } catch (IOException iex) {
+                                contch.removeRMQChannelListener(this);
+                                rmqChannels.remove(contch);
+                                ReconnectTimer.get().updateChannel();
+                            }
                         }
                     }
                 }
@@ -285,10 +319,21 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     private void closeUnusedConsumeChannels(HashSet<String> usedQueueNames) {
         Set<ConsumeRMQChannel> channels = getConsumeRMQChannels();
+        Set<ConsumeRMQChannel> unclosedChannels = new HashSet<ConsumeRMQChannel>();
         if (!channels.isEmpty()) {
             for (ConsumeRMQChannel ch : channels) {
                 if (!usedQueueNames.contains(ch.getQueueName())) {
-                    ch.close();
+                    try {
+                        ch.close();
+                    } catch (IOException ex) {
+                        unclosedChannels.add(ch);
+                    }
+                }
+            }
+            if (!unclosedChannels.isEmpty()) {
+                for (ConsumeRMQChannel ch : unclosedChannels) {
+                    ch.removeRMQChannelListener(this);
+                    rmqChannels.remove(ch);
                 }
             }
         }
@@ -299,8 +344,19 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     private void closeAllChannels() {
         if (!rmqChannels.isEmpty()) {
+            Set<AbstractRMQChannel> unclosedChannels = new HashSet<AbstractRMQChannel>();
             for (AbstractRMQChannel h : rmqChannels) {
-                h.close();
+                try {
+                    h.close();
+                } catch (IOException ex) {
+                    unclosedChannels.add(h);
+                }
+            }
+            if (!unclosedChannels.isEmpty()) {
+                for (AbstractRMQChannel h : unclosedChannels) {
+                    h.removeRMQChannelListener(this);
+                    rmqChannels.remove(h);
+                }
             }
         }
     }
@@ -310,9 +366,20 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     private void closeAllConsumeChannels() {
         Set<ConsumeRMQChannel> channels = getConsumeRMQChannels();
+        Set<ConsumeRMQChannel> unclosedChannels = new HashSet<ConsumeRMQChannel>();
         if (!channels.isEmpty()) {
             for (ConsumeRMQChannel h : channels) {
-                h.close();
+                try {
+                    h.close();
+                } catch (IOException ex) {
+                    unclosedChannels.add(h);
+                }
+            }
+            if (!unclosedChannels.isEmpty()) {
+                for (ConsumeRMQChannel h : unclosedChannels) {
+                    h.removeRMQChannelListener(this);
+                    rmqChannels.remove(h);
+                }
             }
         }
     }
@@ -334,12 +401,47 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
     }
 
     /**
+     * Update control channel.
+     */
+    public void updateControlChannel() {
+        if (getControlRMQChannel() == null) {
+            try {
+                ControlRMQChannel contch = new ControlRMQChannel();
+                contch.addRMQChannelListener(this);
+                contch.open(connection);
+                rmqChannels.add(contch);
+            } catch (IOException e) {
+                LOGGER.warning(e.toString());
+            }
+        }
+    }
+
+    /**
      * @inheritDoc
      * @param rmqChannel
      *            the channel.
      */
     public void onOpen(AbstractRMQChannel rmqChannel) {
-        if (rmqChannel instanceof ConsumeRMQChannel) {
+        boolean errorStatus = false;
+        if (rmqChannel instanceof ControlRMQChannel) {
+            ControlRMQChannel controlChannel = (ControlRMQChannel) rmqChannel;
+            LOGGER.info(MessageFormat.format(
+                    "Open RabbitMQ channel {0} for control.",
+                    rmqChannel.getChannel().getChannelNumber()));
+            try {
+                ServerOperator.fireOnOpen(controlChannel);
+            } catch (Exception ex) {
+                LOGGER.warning(ex.toString());
+                try {
+                    controlChannel.close();
+                } catch (IOException iex) {
+                    controlChannel.removeRMQChannelListener(this);
+                    rmqChannels.remove(controlChannel);
+                    ReconnectTimer.get().updateChannel();
+                }
+            }
+
+        }else if (rmqChannel instanceof ConsumeRMQChannel) {
             ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
             LOGGER.info(MessageFormat.format(
                     "Open RabbitMQ channel {0} for {1}.",
@@ -359,16 +461,28 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the channel.
      */
     public void onCloseCompleted(AbstractRMQChannel rmqChannel) {
-        if (rmqChannel instanceof ConsumeRMQChannel) {
-            ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
-            LOGGER.info(MessageFormat.format(
-                    "Closed RabbitMQ channel {0} for {1}.",
-                    rmqChannel.getChannel().getChannelNumber(),
-                    consumeChannel.getQueueName()));
-        } else if (rmqChannel instanceof PublishRMQChannel) {
-            LOGGER.info(MessageFormat.format(
-                    "Closed RabbitMQ channel {0} for publish.",
-                    rmqChannel.getChannel().getChannelNumber()));
+        try {
+            if (rmqChannel instanceof ControlRMQChannel) {
+                ControlRMQChannel controlChannel = (ControlRMQChannel) rmqChannel;
+                LOGGER.info(MessageFormat.format(
+                        "Closed RabbitMQ channel {0} for control.",
+                        rmqChannel.getChannel().getChannelNumber()));
+                ServerOperator.fireOnCloseCompleted(controlChannel);
+            } else if (rmqChannel instanceof ConsumeRMQChannel) {
+                ConsumeRMQChannel consumeChannel = (ConsumeRMQChannel) rmqChannel;
+                LOGGER.info(MessageFormat.format(
+                        "Closed RabbitMQ channel {0} for {1}.",
+                        rmqChannel.getChannel().getChannelNumber(),
+                        consumeChannel.getQueueName()));
+                ServerOperator.fireOnClosedConsumer(getControlRMQChannel(),
+                        consumeChannel.getQueueName(), consumeChannel.getAppIds());
+            } else if (rmqChannel instanceof PublishRMQChannel) {
+                LOGGER.info(MessageFormat.format(
+                        "Closed RabbitMQ channel {0} for publish.",
+                        rmqChannel.getChannel().getChannelNumber()));
+            }
+        } catch (Exception ex) {
+            // nothing
         }
         rmqChannel.removeRMQChannelListener(this);
         rmqChannels.remove(rmqChannel);
