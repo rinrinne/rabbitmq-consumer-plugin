@@ -42,7 +42,14 @@ public class ConsumeRMQChannelTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new Mocks.ComsumeRMQChannelMock();
+        new Mocks.ConsumeRMQChannelMock();
+
+        MessageQueueListener listener;
+        listener = new Mocks.MessageQueueListenerMock("listener-1", "app-1");
+        Mocks.mqListenerSet.add(listener);
+
+        listener = new Mocks.MessageQueueListenerMock("listener-2", "app-2");
+        Mocks.mqListenerSet.add(listener);
     }
 
     @AfterClass
@@ -51,13 +58,6 @@ public class ConsumeRMQChannelTest {
 
     @Before
     public void setUp() throws Exception {
-        MessageQueueListener listener;
-        listener = new Mocks.MessageQueueListenerMock("listener-1", "app-1");
-        Mocks.mqListenerSet.add(listener);
-
-        listener = new Mocks.MessageQueueListenerMock("listener-2", "app-2");
-        Mocks.mqListenerSet.add(listener);
-
         new NonStrictExpectations() {{
             connection.createChannel(); result = new Mocks.ChannelMock().getMockInstance();
 

@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.rabbitmqconsumer;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +17,9 @@ import mockit.MockUp;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import java.util.logging.Logger;
@@ -36,6 +39,7 @@ public class Mocks {
     public static final Stack<Consumer> consumerPool = new Stack<Consumer>();
     public static final List<String> responseArray = new CopyOnWriteArrayList<String>();
     public static final Set<MessageQueueListener> mqListenerSet = new CopyOnWriteArraySet<MessageQueueListener>();
+    public static final Set<ServerOperator> operatorSet = new CopyOnWriteArraySet<ServerOperator>();
 
     public static final class ChannelMock extends MockUp<Channel> {
 
@@ -63,7 +67,7 @@ public class Mocks {
         }
     }
 
-    public static final class ComsumeRMQChannelMock extends MockUp<ConsumeRMQChannel> {
+    public static final class ConsumeRMQChannelMock extends MockUp<ConsumeRMQChannel> {
 
         @Mock
         public boolean isEnableDebug() {
@@ -74,6 +78,15 @@ public class Mocks {
         public void close(Invocation invocation) {
             invocation.proceed();
             ConsumeRMQChannel ch = invocation.getInvokedInstance();
+            ch.shutdownCompleted(null);
+        }
+    }
+
+    public static final class ControlRMQChannelMock extends MockUp<ControlRMQChannel> {
+        @Mock
+        public void close(Invocation invocation) {
+            invocation.proceed();
+            ControlRMQChannel ch = invocation.getInvokedInstance();
             ch.shutdownCompleted(null);
         }
     }
@@ -94,7 +107,7 @@ public class Mocks {
             LOGGER.info("Open RabbitMQ connection.");
         }
         public void onCloseCompleted(RMQConnection rmqConnection) {
-            LOGGER.info("Open RabbitMQ connection.");
+            LOGGER.info("Closed RabbitMQ connection.");
         }
     }
 
@@ -131,6 +144,31 @@ public class Mocks {
         }
     }
 
+    public static final class ServerOperatorMock extends ServerOperator {
+
+        @Override
+        public void OnOpen(ControlRMQChannel controlChannel) {
+            LOGGER.info(MessageFormat.format("Open control channel {0}.", controlChannel.getChannel().getChannelNumber()));
+        }
+
+        @Override
+        public void OnCloseCompleted(ControlRMQChannel controlChannel) {
+            LOGGER.info(MessageFormat.format("Closed control channel {0}.", controlChannel.getChannel().getChannelNumber()));
+        }
+
+        @Override
+        public void OnOpenConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) {
+            LOGGER.info(MessageFormat.format("Open consumer: queue \"{0}\" for {1}.",
+                    queueName, appIds.toString()));
+        }
+
+        @Override
+        public void OnClosedComsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) {
+            LOGGER.info(MessageFormat.format("Closed consumer: queue \"{0}\" for {1}.",
+                    queueName, appIds.toString()));
+        }
+    }
+
     public static final class OnBindDelegation implements Delegate<MessageQueueListener> {
         void fireOnBind(HashSet<String> appIds, String queueName) {
             for (MessageQueueListener l : mqListenerSet) {
@@ -161,6 +199,38 @@ public class Mocks {
                 if (appId.equals(l.getAppId())) {
                     l.onReceive(queueName, contentType, headers, body);
                 }
+            }
+        }
+    }
+
+    public static final class OnOpenDelegation implements Delegate<ServerOperator> {
+        void fireOnOpen(ControlRMQChannel controlChannel) throws IOException {
+            for (ServerOperator l : operatorSet) {
+                l.OnOpen(controlChannel);
+            }
+        }
+    }
+
+    public static final class OnCloseCompletedDelegation implements Delegate<ServerOperator> {
+        void fireOnCloseCompleted(ControlRMQChannel controlChannel) throws IOException {
+            for (ServerOperator l : operatorSet) {
+                l.OnCloseCompleted(controlChannel);
+            }
+        }
+    }
+
+    public static final class OnOpenConsumerDelegation implements Delegate<ServerOperator> {
+        void fireOnOpenConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) throws IOException {
+            for (ServerOperator l : operatorSet) {
+                l.OnOpenConsumer(controlChannel, queueName, appIds);
+            }
+        }
+    }
+
+    public static final class OnClosedConsumerDelegation implements Delegate<ServerOperator> {
+        void fireOnClosedConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) throws IOException {
+            for (ServerOperator l : operatorSet) {
+                l.OnClosedComsumer(controlChannel, queueName, appIds);
             }
         }
     }

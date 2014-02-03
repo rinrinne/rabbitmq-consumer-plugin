@@ -12,8 +12,11 @@ import java.util.Set;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
+import org.jenkinsci.plugins.rabbitmqconsumer.Mocks.ServerOperatorMock;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.watchdog.ReconnectTimer;
 import org.junit.After;
@@ -43,6 +46,9 @@ public class RMQConnectionTest {
     MessageQueueListener mqListener = null;     /* dummy */
 
     @Mocked
+    ServerOperator serverOperator = null;       /* dummy */
+
+    @Mocked
     Connection connection;
 
     RMQConnectionListener connListener = new Mocks.RMQConnectionListenerMock();
@@ -50,7 +56,10 @@ public class RMQConnectionTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         new Mocks.RMQConnectionMock();
-        new Mocks.ComsumeRMQChannelMock();
+        new Mocks.ConsumeRMQChannelMock();
+        new Mocks.ControlRMQChannelMock();
+
+        Mocks.operatorSet.add(new Mocks.ServerOperatorMock());
     }
 
     @AfterClass
@@ -59,6 +68,7 @@ public class RMQConnectionTest {
 
     @Before
     public void setUp() throws Exception {
+
         new NonStrictExpectations() {{
             connection.createChannel(); result = new Mocks.ChannelMock().getMockInstance();
             MessageQueueListener.all();
@@ -69,6 +79,18 @@ public class RMQConnectionTest {
             ReconnectTimer.get(); result = timer;
             timer.start();
             timer.stop();
+
+            ServerOperator.fireOnOpen((ControlRMQChannel) any);
+            result = new Mocks.OnOpenDelegation();
+
+            ServerOperator.fireOnCloseCompleted((ControlRMQChannel) any);
+            result = new Mocks.OnCloseCompletedDelegation();
+
+            ServerOperator.fireOnOpenConsumer((ControlRMQChannel) any, anyString, (HashSet<String>) any);
+            result = new Mocks.OnOpenConsumerDelegation();
+
+            ServerOperator.fireOnClosedConsumer((ControlRMQChannel) any, anyString, (HashSet<String>) any);
+            result = new Mocks.OnClosedConsumerDelegation();
         }};
     }
 
@@ -194,8 +216,8 @@ public class RMQConnectionTest {
             for (ConsumeRMQChannel ch : channels) {
                 queueNames.add(ch.getQueueName());
             }
-          assertFalse(queueNames.contains("queue-3"));
-          assertTrue(queueNames.contains("queue-4"));
+            assertFalse(queueNames.contains("queue-3"));
+            assertTrue(queueNames.contains("queue-4"));
             conn.close();
         } catch (Exception ex) {
             fail(ex.toString());
