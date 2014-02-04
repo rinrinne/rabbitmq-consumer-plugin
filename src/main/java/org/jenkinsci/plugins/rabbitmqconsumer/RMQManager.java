@@ -14,6 +14,8 @@ import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 
+import com.rabbitmq.client.Channel;
+
 /**
  * Manager class for RabbitMQ connection.
  *
@@ -148,6 +150,22 @@ public final class RMQManager implements RMQConnectionListener {
         } else {
             return rmqConnection.getConsumeChannelStatus(queueName);
         }
+    }
+
+    /**
+     * Gets channel.
+     * Note that returned channel is not managed in any own classes.
+     *
+     * @return the channel.
+     */
+    public Channel getChannel() {
+        Channel ch = null;
+        if (statusOpen) {
+            if (rmqConnection != null) {
+                ch = rmqConnection.createPureChannel();
+            }
+        }
+        return ch;
     }
 
     /**

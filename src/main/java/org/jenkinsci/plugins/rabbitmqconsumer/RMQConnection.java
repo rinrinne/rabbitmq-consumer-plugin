@@ -23,6 +23,7 @@ import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.notifiers.RMQConnectionNotifier;
 import org.jenkinsci.plugins.rabbitmqconsumer.watchdog.ReconnectTimer;
 
+import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.ShutdownListener;
@@ -69,6 +70,23 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      */
     public Connection getConnection() {
         return connection;
+    }
+
+    /**
+     * Create pure channel.
+     *
+     * @return the channel.
+     */
+    public Channel createPureChannel() {
+        Channel ch = null;
+        if (connection != null) {
+            try {
+                ch = connection.createChannel();
+            } catch (Exception ex) {
+                LOGGER.warning("Cannot create channel.");
+            }
+        }
+        return ch;
     }
 
     /**
