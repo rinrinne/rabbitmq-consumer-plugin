@@ -5,11 +5,15 @@ import java.util.HashSet;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * Item class that indicates queue setting in global configuration.
@@ -152,6 +156,29 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
                 items.add(appId, appId);
             }
             return items;
+        }
+
+        /**
+         * Check given queue name.
+         *
+         * @param value the field value named queueName.
+         * @return ok if no problem.
+         */
+        public FormValidation doCheckQueueName(@QueryParameter String value) {
+            if (StringUtils.stripToNull(value) != null) {
+                if (RMQManager.getInstance().isOpen()) {
+                    Channel ch = RMQManager.getInstance().getChannel();
+                    if (ch != null) {
+                        try {
+                            ch.queueDeclarePassive(StringUtils.strip(value));
+                            return FormValidation.ok();
+                        } catch (Exception ex) {
+                            return FormValidation.error("Not found.");
+                        }
+                    }
+                }
+            }
+            return FormValidation.ok();
         }
     }
 }
