@@ -12,7 +12,6 @@ import java.util.Set;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 
-import org.jenkinsci.plugins.rabbitmqconsumer.Mocks.ServerOperatorMock;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;

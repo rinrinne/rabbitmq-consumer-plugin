@@ -18,6 +18,7 @@ import mockit.MockUp;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.RMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
@@ -147,23 +148,23 @@ public class Mocks {
     public static final class ServerOperatorMock extends ServerOperator {
 
         @Override
-        public void OnOpen(ControlRMQChannel controlChannel) {
+        public void OnOpen(RMQChannel controlChannel) {
             LOGGER.info(MessageFormat.format("Open control channel {0}.", controlChannel.getChannel().getChannelNumber()));
         }
 
         @Override
-        public void OnCloseCompleted(ControlRMQChannel controlChannel) {
+        public void OnCloseCompleted(RMQChannel controlChannel) {
             LOGGER.info(MessageFormat.format("Closed control channel {0}.", controlChannel.getChannel().getChannelNumber()));
         }
 
         @Override
-        public void OnOpenConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) {
+        public void OnOpenConsumer(RMQChannel controlChannel, String queueName, HashSet<String> appIds) {
             LOGGER.info(MessageFormat.format("Open consumer: queue \"{0}\" for {1}.",
                     queueName, appIds.toString()));
         }
 
         @Override
-        public void OnClosedComsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) {
+        public void OnClosedComsumer(RMQChannel controlChannel, String queueName, HashSet<String> appIds) {
             LOGGER.info(MessageFormat.format("Closed consumer: queue \"{0}\" for {1}.",
                     queueName, appIds.toString()));
         }
