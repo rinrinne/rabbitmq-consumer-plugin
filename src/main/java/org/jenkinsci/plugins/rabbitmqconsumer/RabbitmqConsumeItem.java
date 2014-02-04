@@ -173,7 +173,7 @@ public class RabbitmqConsumeItem extends AbstractDescribableImpl<RabbitmqConsume
                             ch.queueDeclarePassive(StringUtils.strip(value));
                             return FormValidation.ok();
                         } catch (Exception ex) {
-                            return FormValidation.error("Not found.");
+                            return FormValidation.error(Messages.NotFound());
                         }
                     }
                 }
