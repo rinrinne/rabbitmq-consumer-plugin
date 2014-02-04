@@ -8,7 +8,7 @@ import jenkins.model.Jenkins;
 import hudson.ExtensionList;
 
 import org.apache.tools.ant.ExtensionPoint;
-import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.channels.RMQChannel;
 
 /**
  * RabbitMQ server operation class.
@@ -21,24 +21,27 @@ public abstract class ServerOperator extends ExtensionPoint {
 
     /**
      * Calls when channel is opened.
+     * You must not hold given values from control channel.
      *
      * @param controlChannel
      *            the control channel.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public abstract void OnOpen(ControlRMQChannel controlChannel) throws IOException;
+    public abstract void OnOpen(RMQChannel controlChannel) throws IOException;
 
     /**
      * Calls when channel is closed.
+     * You must not hold given values from control channel.
      *
      * @param controlChannel
      *            the control channel.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public abstract void OnCloseCompleted(ControlRMQChannel controlChannel) throws IOException;
+    public abstract void OnCloseCompleted(RMQChannel controlChannel) throws IOException;
 
     /**
      * Calls when channel for consumer is opened. (before binding queue)
+     * You must not hold given values from control channel.
      *
      * @param controlChannel
      *            the control channel.
@@ -48,11 +51,12 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the list of app ID.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public abstract void OnOpenConsumer(ControlRMQChannel controlChannel,
+    public abstract void OnOpenConsumer(RMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException;
 
     /**
      * Calls when channle for consumer is closed. (after unbinding queue)
+     * You must not hold given values from control channel.
      *
      * @param controlChannel
      *            the control channel.
@@ -62,7 +66,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the list of app ID.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public abstract void OnClosedComsumer(ControlRMQChannel controlChannel,
+    public abstract void OnClosedComsumer(RMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException;
 
     /**
@@ -72,7 +76,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the control channel.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public static void fireOnOpen(ControlRMQChannel controlChannel) throws IOException {
+    public static void fireOnOpen(RMQChannel controlChannel) throws IOException {
         LOGGER.entering("ServerOperator", "fireOnOpen");
         for (ServerOperator l : all()) {
             l.OnOpen(controlChannel);
@@ -86,7 +90,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the control channel.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public static void fireOnCloseCompleted(ControlRMQChannel controlChannel) throws IOException {
+    public static void fireOnCloseCompleted(RMQChannel controlChannel) throws IOException {
         LOGGER.entering("ServerOperator", "fireOnCloseCompleted");
         for (ServerOperator l : all()) {
             l.OnCloseCompleted(controlChannel);
@@ -104,7 +108,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the list of app ID.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public static void fireOnOpenConsumer(ControlRMQChannel controlChannel,
+    public static void fireOnOpenConsumer(RMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException {
         LOGGER.entering("ServerOperator", "fireOnOpenConsumer");
         for (ServerOperator l : all()) {
@@ -123,7 +127,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      *            the list of app ID.
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
-    public static void fireOnClosedConsumer(ControlRMQChannel controlChannel,
+    public static void fireOnClosedConsumer(RMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException {
         LOGGER.entering("ServerOperator", "fireOnClosedConsumer");
         for (ServerOperator l : all()) {
