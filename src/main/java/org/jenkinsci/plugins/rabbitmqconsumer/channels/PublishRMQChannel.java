@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
@@ -17,7 +18,7 @@ import com.rabbitmq.client.AMQP;
 
 /**
  * Handle class for RabbitMQ publish channel.
- * 
+ *
  * @author rinrinne a.k.a. rin_ne
  */
 public class PublishRMQChannel extends AbstractRMQChannel implements PublishChannel {
@@ -93,9 +94,9 @@ public class PublishRMQChannel extends AbstractRMQChannel implements PublishChan
 
     /**
      * A class to publish message.
-     * 
+     *
      * @author rinrinne a.k.a. rin_ne
-     * 
+     *
      */
     public class PublishTask implements Callable<PublishResult> {
 
@@ -103,7 +104,7 @@ public class PublishRMQChannel extends AbstractRMQChannel implements PublishChan
         private String routingKey;
         private AMQP.BasicProperties props;
         private byte[] body;
-        
+
         /**
          * Create instance.
          *
@@ -119,7 +120,7 @@ public class PublishRMQChannel extends AbstractRMQChannel implements PublishChan
             this.props = props;
             this.body = body;
         }
-        
+
         /**
          * @inheritDoc
          */
@@ -130,8 +131,8 @@ public class PublishRMQChannel extends AbstractRMQChannel implements PublishChan
                         channel.basicPublish(exchangeName, routingKey, props, body);
                         return new PublishResult(true, "Published", exchangeName);
                     } catch (IOException e) {
-                        LOGGER.warning(e.getMessage());
-                        return new PublishResult(false, e.getMessage(), exchangeName);
+                        LOGGER.log(Level.WARNING, "Failed to publish message.", e);
+                        return new PublishResult(false, "Failed to publish message.", exchangeName);
                     }
                 }
             }

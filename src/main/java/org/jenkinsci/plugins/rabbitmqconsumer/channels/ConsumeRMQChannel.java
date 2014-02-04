@@ -72,7 +72,7 @@ public class ConsumeRMQChannel extends AbstractRMQChannel {
             consumeStarted = true;
             MessageQueueListener.fireOnBind(appIds, queueName);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Failed to start consumer:", e);
+            LOGGER.log(Level.WARNING, "Failed to start consumer: ", e);
         }
     }
 

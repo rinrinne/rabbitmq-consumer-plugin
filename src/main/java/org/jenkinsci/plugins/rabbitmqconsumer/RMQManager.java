@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
@@ -80,7 +81,7 @@ public final class RMQManager implements RMQConnectionListener {
                     try {
                         rmqConnection.open();
                     } catch (IOException e) {
-                        LOGGER.warning("Cannot open connection.");
+                        LOGGER.log(Level.WARNING, "Cannot open connection.", e);
                         return;
                     }
                 }

@@ -73,6 +73,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
     public static void fireOnOpen(ControlRMQChannel controlChannel) throws IOException {
+        LOGGER.entering("ServerOperator", "fireOnOpen");
         for (ServerOperator l : all()) {
             l.OnOpen(controlChannel);
         }
@@ -86,6 +87,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      * @throws IOException if ControlRMQChannel has somthing wrong.
      */
     public static void fireOnCloseCompleted(ControlRMQChannel controlChannel) throws IOException {
+        LOGGER.entering("ServerOperator", "fireOnCloseCompleted");
         for (ServerOperator l : all()) {
             l.OnCloseCompleted(controlChannel);
         }
@@ -104,6 +106,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      */
     public static void fireOnOpenConsumer(ControlRMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException {
+        LOGGER.entering("ServerOperator", "fireOnOpenConsumer");
         for (ServerOperator l : all()) {
             l.OnOpenConsumer(controlChannel, queueName, appIds);
         }
@@ -122,6 +125,7 @@ public abstract class ServerOperator extends ExtensionPoint {
      */
     public static void fireOnClosedConsumer(ControlRMQChannel controlChannel,
             String queueName, HashSet<String> appIds) throws IOException {
+        LOGGER.entering("ServerOperator", "fireOnClosedConsumer");
         for (ServerOperator l : all()) {
             l.OnClosedComsumer(controlChannel, queueName, appIds);
         }

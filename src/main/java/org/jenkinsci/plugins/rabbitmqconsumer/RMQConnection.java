@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -201,7 +202,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                 connection.close();
             }
         } catch (IOException e) {
-            LOGGER.warning(e.toString());
+            LOGGER.warning("Failed to close connection.");
         } finally {
             connection = null;
         }
@@ -288,7 +289,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                             ch.open(connection);
                             rmqChannels.add(ch);
                         } catch (IOException e) {
-                            LOGGER.warning(e.toString());
+                            LOGGER.log(Level.WARNING, MessageFormat.format(
+                                    "Failed to open consume channel for {0}.",
+                                    queueName), e);
                             ch.removeRMQChannelListener(this);
                             continue;
                         }
@@ -296,7 +299,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                         try {
                             ServerOperator.fireOnOpenConsumer(contch, queueName, appIds);
                         } catch (IOException ex) {
-                            LOGGER.warning(ex.toString());
+                            LOGGER.log(Level.WARNING, "Caught exception regarding control channel.", ex);
                             try {
                                 contch.close();
                             } catch (IOException iex) {
@@ -395,7 +398,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                 pubch.open(connection);
                 rmqChannels.add(pubch);
             } catch (IOException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.log(Level.WARNING, "Failed to open publish channel.", e);
             }
         }
     }
@@ -411,7 +414,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
                 contch.open(connection);
                 rmqChannels.add(contch);
             } catch (IOException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.log(Level.WARNING, "Failed to open control channel.", e);
             }
         }
     }
@@ -422,7 +425,6 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
      *            the channel.
      */
     public void onOpen(AbstractRMQChannel rmqChannel) {
-        boolean errorStatus = false;
         if (rmqChannel instanceof ControlRMQChannel) {
             ControlRMQChannel controlChannel = (ControlRMQChannel) rmqChannel;
             LOGGER.info(MessageFormat.format(
@@ -431,7 +433,7 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
             try {
                 ServerOperator.fireOnOpen(controlChannel);
             } catch (Exception ex) {
-                LOGGER.warning(ex.toString());
+                LOGGER.log(Level.WARNING, "Caught exception regarding control channel.", ex);
                 try {
                     controlChannel.close();
                 } catch (IOException iex) {
