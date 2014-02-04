@@ -17,8 +17,6 @@ import mockit.MockUp;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.AbstractRMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.ConsumeRMQChannel;
-import org.jenkinsci.plugins.rabbitmqconsumer.channels.ControlRMQChannel;
-import org.jenkinsci.plugins.rabbitmqconsumer.channels.RMQChannel;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.MessageQueueListener;
 import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener;
@@ -83,15 +81,6 @@ public class Mocks {
         }
     }
 
-    public static final class ControlRMQChannelMock extends MockUp<ControlRMQChannel> {
-        @Mock
-        public void close(Invocation invocation) {
-            invocation.proceed();
-            ControlRMQChannel ch = invocation.getInvokedInstance();
-            ch.shutdownCompleted(null);
-        }
-    }
-
     public static final class RMQChannelListenerMock implements RMQChannelListener {
         public void onOpen(AbstractRMQChannel rmqChannel) {
             LOGGER.info(MessageFormat.format("Open ConsumeRMQChannelMock channel {0} for {1}.",
@@ -148,25 +137,13 @@ public class Mocks {
     public static final class ServerOperatorMock extends ServerOperator {
 
         @Override
-        public void OnOpen(RMQChannel controlChannel) {
-            LOGGER.info(MessageFormat.format("Open control channel {0}.", controlChannel.getChannel().getChannelNumber()));
+        public void OnOpen(Channel controlChannel, String serviceUri) {
+            LOGGER.info(MessageFormat.format("Open control channel {0} for {1}.", controlChannel.getChannelNumber(), serviceUri));
         }
 
         @Override
-        public void OnCloseCompleted(RMQChannel controlChannel) {
-            LOGGER.info(MessageFormat.format("Closed control channel {0}.", controlChannel.getChannel().getChannelNumber()));
-        }
-
-        @Override
-        public void OnOpenConsumer(RMQChannel controlChannel, String queueName, HashSet<String> appIds) {
-            LOGGER.info(MessageFormat.format("Open consumer: queue \"{0}\" for {1}.",
-                    queueName, appIds.toString()));
-        }
-
-        @Override
-        public void OnClosedComsumer(RMQChannel controlChannel, String queueName, HashSet<String> appIds) {
-            LOGGER.info(MessageFormat.format("Closed consumer: queue \"{0}\" for {1}.",
-                    queueName, appIds.toString()));
+        public void OnCloseCompleted(String serviceUri) {
+            LOGGER.info(MessageFormat.format("Closed connection for {0}.", serviceUri));
         }
     }
 
@@ -205,33 +182,25 @@ public class Mocks {
     }
 
     public static final class OnOpenDelegation implements Delegate<ServerOperator> {
-        void fireOnOpen(ControlRMQChannel controlChannel) throws IOException {
-            for (ServerOperator l : operatorSet) {
-                l.OnOpen(controlChannel);
+        void fireOnOpen(RMQConnection rmqConnection) throws IOException {
+            if (rmqConnection.getConnection() != null) {
+                for (ServerOperator l : operatorSet) {
+                    try {
+                        Channel ch = rmqConnection.getConnection().createChannel();
+                        l.OnOpen(ch, rmqConnection.getServiceUri());
+                        ch.close();
+                    } catch (Exception ex) {
+                        LOGGER.warning("Caught exception from OnOpen().");
+                    }
+                }
             }
         }
     }
 
     public static final class OnCloseCompletedDelegation implements Delegate<ServerOperator> {
-        void fireOnCloseCompleted(ControlRMQChannel controlChannel) throws IOException {
+        void fireOnCloseCompleted(RMQConnection rmqConnection) throws IOException {
             for (ServerOperator l : operatorSet) {
-                l.OnCloseCompleted(controlChannel);
-            }
-        }
-    }
-
-    public static final class OnOpenConsumerDelegation implements Delegate<ServerOperator> {
-        void fireOnOpenConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) throws IOException {
-            for (ServerOperator l : operatorSet) {
-                l.OnOpenConsumer(controlChannel, queueName, appIds);
-            }
-        }
-    }
-
-    public static final class OnClosedConsumerDelegation implements Delegate<ServerOperator> {
-        void fireOnClosedConsumer(ControlRMQChannel controlChannel, String queueName, HashSet<String> appIds) throws IOException {
-            for (ServerOperator l : operatorSet) {
-                l.OnClosedComsumer(controlChannel, queueName, appIds);
+                l.OnCloseCompleted(rmqConnection.getServiceUri());
             }
         }
     }
