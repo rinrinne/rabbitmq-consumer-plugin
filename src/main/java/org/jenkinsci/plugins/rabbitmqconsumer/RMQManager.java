@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jenkinsci.plugins.rabbitmqconsumer.channels.PublishRMQChannel;
+import org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator;
 import org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQConnectionListener;
 
 /**
@@ -171,6 +172,7 @@ public final class RMQManager implements RMQConnectionListener {
         LOGGER.info(MessageFormat.format(
                 "Open RabbitMQ connection: {0}",
                 rmqConnection.getServiceUri()));
+        ServerOperator.fireOnOpen(rmqConnection);
         statusOpen = true;
     }
 
@@ -184,6 +186,7 @@ public final class RMQManager implements RMQConnectionListener {
                 "Closed RabbitMQ connection: {0}",
                 rmqConnection.getServiceUri()));
         rmqConnection.removeRMQConnectionListener(this);
+        ServerOperator.fireOnCloseCompleted(rmqConnection);
         statusOpen = false;
         if (closeLatch != null) {
             closeLatch.countDown();
