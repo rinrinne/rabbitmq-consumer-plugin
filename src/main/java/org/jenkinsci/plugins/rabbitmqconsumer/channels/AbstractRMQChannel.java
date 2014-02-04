@@ -20,7 +20,7 @@ import com.rabbitmq.client.ShutdownSignalException;
  *
  * @author rinrinne a.k.a. rin_ne
  */
-public abstract class AbstractRMQChannel implements RMQChannel, RMQChannelNotifier, ShutdownListener {
+public abstract class AbstractRMQChannel implements RMQChannelNotifier, ShutdownListener {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractRMQChannel.class.getName());
 
@@ -53,7 +53,9 @@ public abstract class AbstractRMQChannel implements RMQChannel, RMQChannelNotifi
     }
 
     /**
-     * @inheritDoc
+     * Gets channel.
+     *
+     * @return the channel.
      */
     public Channel getChannel() {
         return channel;
