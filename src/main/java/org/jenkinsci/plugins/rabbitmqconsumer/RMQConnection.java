@@ -214,8 +214,9 @@ public class RMQConnection implements ShutdownListener, RMQChannelListener, RMQC
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to close connection.");
-        } finally {
-            connection = null;
+            if (!(e.getCause() instanceof ShutdownSignalException)) {
+                connection = null;
+            }
         }
     }
 

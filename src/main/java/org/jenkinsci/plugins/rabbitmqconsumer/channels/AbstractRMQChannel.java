@@ -69,8 +69,10 @@ public abstract class AbstractRMQChannel implements RMQChannel, RMQChannelNotifi
             try {
                 channel.close();
             } catch (IOException ex) {
-                notifyOnCloseCompleted();
-                channel = null;
+                if (!(ex.getCause() instanceof ShutdownSignalException)) {
+                    notifyOnCloseCompleted();
+                    channel = null;
+                }
                 throw ex;
             }
         }
