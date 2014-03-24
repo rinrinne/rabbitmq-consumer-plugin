@@ -75,11 +75,13 @@ You can customize server operation like the following.
 * Modify queue/exchange properties
 * queue-exchange binding
 
-This interface passes instance of `com.rabbitmq.client.Channel` as argument.
+This interface passes instance of [Channel] as argument.
 
 Extension Point:
 
 > org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator
+
+[Channel]: http://www.rabbitmq.com/releases/rabbitmq-java-client/v3.2.4/rabbitmq-java-client-javadoc-3.2.4/com/rabbitmq/client/Channel.html
 
 Notice
 ------------------------
