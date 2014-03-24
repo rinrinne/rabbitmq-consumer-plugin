@@ -64,6 +64,23 @@ Interfaces:
 > org.jenkinsci.plugins.rabbitmqconsumer.publishers.ExchangeType
 > org.jenkinsci.plugins.rabbitmqconsumer.listeners.RMQChannelListener
 
+Customized server operation
+--------------------------
+
+This plugin provides interface for customized operation.
+
+You can customize server operation like the following.
+
+* Declare queue/exchange
+* Modify queue/exchange properties
+* queue-exchange binding
+
+This interface passes instance of `com.rabbitmq.client.Channel` as argument.
+
+Extension Point:
+
+> org.jenkinsci.plugins.rabbitmqconsumer.extensions.ServerOperator
+
 Notice
 ------------------------
 
